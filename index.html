@@ -645,7 +645,7 @@ body::after {
 
     <div class="form-group">
       <label class="form-label">Tipe Izin *</label>
-      <select class="form-select" id="izinTipe">
+      <select class="form-select" id="izinTipe" onchange="onIzinTipeChange()">
         <option value="">Pilih tipe...</option>
         <option value="Izin">🙏 Izin</option>
         <option value="Cuti">🏖️ Cuti</option>
@@ -660,11 +660,31 @@ body::after {
         <input type="date" class="form-control" id="izinTglMulai" onchange="updateIzinHari()">
       </div>
       <div class="form-group">
-        <label class="form-label">Tanggal Selesai</label>
+        <label class="form-label" id="izinTglSelesaiLabel">Tanggal Selesai</label>
         <input type="date" class="form-control" id="izinTglSelesai" onchange="updateIzinHari()">
       </div>
     </div>
-    <div id="izinHariInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:12px;color:var(--accent)">
+
+    <!-- SECTION JAM khusus Dinas Luar -->
+    <div id="izinJamSection" style="display:none;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">⏰ Jam Dinas</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Jam Mulai</label>
+          <input type="time" class="form-control" id="izinJamMulai" onchange="updateIzinHari()" style="font-size:15px;font-weight:600">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jam Selesai</label>
+          <input type="time" class="form-control" id="izinJamSelesai" onchange="updateIzinHari()" style="font-size:15px;font-weight:600">
+        </div>
+      </div>
+    </div>
+
+        <div id="izinHariInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:12px;color:var(--accent)">
       <i class="fas fa-calendar me-1"></i><span id="izinHariText"></span>
     </div>
     <div class="form-group">
@@ -828,7 +848,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyt86WH4yIBeKlILyg2BL4v0jKVPDhZMceiJ6xe_KKMhK5Xli6JSeIvpqLli4jXRZbD/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxyZojynYnfnjaNi2h94dh7e2-WnynReJoHuctt0BHhu2aLy3FEOUVaGhdNYkvwy-QN/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1338,18 +1358,35 @@ function show(stepId) {
 let izinFotoBase64 = null;
 
 function showIzinForm() {
-  // Reset form izin
-  document.getElementById('izinTipe').value = '';
-  document.getElementById('izinTglMulai').value = '';
-  document.getElementById('izinTglSelesai').value = '';
-  document.getElementById('izinKeterangan').value = '';
-  document.getElementById('izinHariInfo').style.display = 'none';
+  document.getElementById('izinTipe').value        = '';
+  document.getElementById('izinTglMulai').value    = '';
+  document.getElementById('izinTglSelesai').value  = '';
+  document.getElementById('izinKeterangan').value  = '';
+  document.getElementById('izinHariInfo').style.display    = 'none';
+  document.getElementById('izinJamSection').style.display  = 'none';
   document.getElementById('izinFotoPreview').style.display = 'none';
   document.getElementById('izinFotoImg').src = '';
   document.getElementById('izinUploadText').textContent = 'Tap untuk upload foto/surat';
+  document.getElementById('izinUploadArea').style.borderColor = 'var(--border)';
+  const jamEl = document.getElementById('izinJamMulai');
+  const jamEl2 = document.getElementById('izinJamSelesai');
+  if (jamEl) jamEl.value = '';
+  if (jamEl2) jamEl2.value = '';
   izinFotoBase64 = null;
   show('step5');
   setDot(5);
+}
+
+function onIzinTipeChange() {
+  const tipe    = document.getElementById('izinTipe').value;
+  const jamSec  = document.getElementById('izinJamSection');
+  const isDinas = tipe === 'Dinas Luar';
+  jamSec.style.display = isDinas ? 'block' : 'none';
+  if (!isDinas) {
+    document.getElementById('izinJamMulai').value  = '';
+    document.getElementById('izinJamSelesai').value = '';
+  }
+  updateIzinHari();
 }
 
 function backToStep2FromIzin() {
@@ -1358,10 +1395,13 @@ function backToStep2FromIzin() {
 }
 
 function updateIzinHari() {
-  const mulai   = document.getElementById('izinTglMulai').value;
-  const selesai = document.getElementById('izinTglSelesai').value;
-  const info    = document.getElementById('izinHariInfo');
-  const text    = document.getElementById('izinHariText');
+  const mulai    = document.getElementById('izinTglMulai').value;
+  const selesai  = document.getElementById('izinTglSelesai').value;
+  const tipe     = document.getElementById('izinTipe').value;
+  const jamMulai = document.getElementById('izinJamMulai').value;
+  const jamSls   = document.getElementById('izinJamSelesai').value;
+  const info     = document.getElementById('izinHariInfo');
+  const text     = document.getElementById('izinHariText');
 
   if (!mulai) { info.style.display = 'none'; return; }
 
@@ -1378,22 +1418,31 @@ function updateIzinHari() {
   const mulaiStr   = d1.toLocaleDateString('id-ID', opts);
   const selesaiStr = d2.toLocaleDateString('id-ID', opts);
 
-  text.textContent = hari === 1
-    ? `${hari} hari — ${mulaiStr}`
-    : `${hari} hari — ${mulaiStr} s/d ${selesaiStr}`;
+  let infoText = '';
+  if (tipe === 'Dinas Luar' && jamMulai) {
+    // Tampilkan ringkasan jam untuk Dinas Luar
+    const tglPart = hari === 1
+      ? mulaiStr
+      : `${mulaiStr} s/d ${selesaiStr}`;
+    const durHtml = (jamMulai && jamSls) ? ` (${jamMulai}–${jamSls})` : (jamMulai ? ` mulai ${jamMulai}` : '');
+    infoText = `${hari} hari — ${tglPart}${durHtml}`;
+  } else {
+    infoText = hari === 1
+      ? `${hari} hari — ${mulaiStr}`
+      : `${hari} hari — ${mulaiStr} s/d ${selesaiStr}`;
+  }
 
+  text.textContent = infoText;
   info.style.display = 'block';
 }
 
 function onIzinFotoSelected(event) {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function(e) {
     const dataUrl = e.target.result;
     izinFotoBase64 = dataUrl.split(',')[1];
-
     document.getElementById('izinFotoImg').src = dataUrl;
     document.getElementById('izinFotoPreview').style.display = 'block';
     document.getElementById('izinUploadText').textContent = '✓ ' + file.name;
@@ -1407,22 +1456,36 @@ async function submitIzin() {
   const tglMulai = document.getElementById('izinTglMulai').value;
   const tglAkhir = document.getElementById('izinTglSelesai').value;
   const ket      = document.getElementById('izinKeterangan').value.trim();
+  const jamMulai = document.getElementById('izinJamMulai').value;
+  const jamSls   = document.getElementById('izinJamSelesai').value;
 
   if (!tipe)     { showAlert('Pilih tipe izin terlebih dahulu.', 'error'); return; }
   if (!tglMulai) { showAlert('Tanggal mulai wajib diisi.', 'error'); return; }
   if (!State.selectedEmp) { showAlert('Karyawan tidak ditemukan, kembali dan pilih ulang.', 'error'); return; }
+  if (tipe === 'Dinas Luar' && jamMulai && jamSls && jamSls <= jamMulai) {
+    showAlert('Jam selesai harus lebih dari jam mulai.', 'error'); return;
+  }
 
   const btn = document.getElementById('btnSubmitIzin');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
+  // Buat keterangan otomatis untuk Dinas Luar jika ada jam
+  let ketFinal = ket;
+  if (tipe === 'Dinas Luar' && jamMulai) {
+    const jamInfo = jamSls ? `Jam ${jamMulai} – ${jamSls}` : `Mulai jam ${jamMulai}`;
+    ketFinal = ket ? `${jamInfo}. ${ket}` : jamInfo;
+  }
+
   try {
     const payload = {
       employee_id:  State.selectedEmp.employee_id,
-      tipe:         tipe,
+      tipe,
       tgl_mulai:    tglMulai,
       tgl_selesai:  tglAkhir || tglMulai,
-      keterangan:   ket,
+      jam_mulai:    jamMulai || '',
+      jam_selesai:  jamSls   || '',
+      keterangan:   ketFinal,
       foto_url:     izinFotoBase64 ? 'base64:' + izinFotoBase64.substring(0, 50) : '',
       submitted_by: 'karyawan'
     };
@@ -1430,8 +1493,16 @@ async function submitIzin() {
     const res = await callGAS('submitLeaveRequest', payload);
 
     if (res && res.success) {
-      // Tampilkan sukses
       show('step5');
+      // Ringkasan jam untuk halaman sukses
+      const jamDisplay = (tipe === 'Dinas Luar' && jamMulai)
+        ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+             <span style="color:var(--text-muted)">Jam</span>
+             <span style="font-weight:600">${jamMulai}${jamSls ? ' – ' + jamSls : ''}</span>
+           </div>`
+        : '';
+      const tglDisplay = tglAkhir && tglAkhir !== tglMulai ? `${tglMulai} s/d ${tglAkhir}` : tglMulai;
+
       document.getElementById('step5').innerHTML = `
         <div style="text-align:center;padding:20px 0">
           <div style="width:72px;height:72px;background:rgba(16,185,129,0.15);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px">✅</div>
@@ -1439,7 +1510,6 @@ async function submitIzin() {
           <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Pengajuan <strong>${tipe}</strong> atas nama</p>
           <p style="font-size:15px;font-weight:700;margin-bottom:4px">${State.selectedEmp.nama}</p>
           <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">sedang menunggu persetujuan admin.</p>
-
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:left;margin-bottom:20px">
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
               <span style="color:var(--text-muted)">ID Pengajuan</span>
@@ -1451,19 +1521,18 @@ async function submitIzin() {
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
               <span style="color:var(--text-muted)">Tanggal</span>
-              <span style="font-weight:600">${tglMulai}${tglAkhir && tglAkhir !== tglMulai ? ' s/d ' + tglAkhir : ''}</span>
+              <span style="font-weight:600">${tglDisplay}</span>
             </div>
+            ${jamDisplay}
             <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">
               <span style="color:var(--text-muted)">Jumlah Hari</span>
               <span style="font-weight:600">${res.jumlah_hari || 1} hari</span>
             </div>
           </div>
-
           <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:var(--accent)">
             <i class="fas fa-info-circle" style="margin-right:6px"></i>
-            Admin akan memproses pengajuan Anda. Status dapat dilihat melalui halaman admin.
+            Admin akan memproses pengajuan Anda.
           </div>
-
           <button class="btn-submit" onclick="resetForm()" style="background:linear-gradient(135deg,var(--success),#059669)">
             <i class="fas fa-user"></i> Selesai
           </button>
@@ -1482,37 +1551,6 @@ async function submitIzin() {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan';
   }
-}
-
-function setDot(step) {
-  for (let i = 1; i <= 4; i++) {
-    const d = document.getElementById('dot' + i);
-    if (!d) continue;
-    d.className = 'step-dot';
-    if (i < step)  d.classList.add('done');
-    if (i === step) d.classList.add('active');
-  }
-}
-
-function showAlert(msg, type) {
-  const box = document.getElementById('alertBox');
-  const icons = { error: 'fa-exclamation-circle', success: 'fa-check-circle', info: 'fa-info-circle' };
-  box.innerHTML = `<div class="alert alert-${type}">
-    <i class="fas ${icons[type]||'fa-info-circle'}"></i>
-    <span>${msg}</span>
-  </div>`;
-  box.style.display = 'block';
-}
-
-function hideAlert() {
-  const box = document.getElementById('alertBox');
-  box.style.display = 'none';
-  box.innerHTML = '';
-}
-
-function todayStr() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 }
 
 // ── INIT ────────────────────────────────────────────────────
