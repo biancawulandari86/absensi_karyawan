@@ -635,6 +635,66 @@ body::after {
     </button>
   </div>
 
+  <!-- STEP 5: FORM PENGAJUAN IZIN -->
+  <div id="step5" style="display:none">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:56px;height:56px;background:rgba(59,130,246,0.15);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px">📋</div>
+      <h3 style="font-size:17px;font-weight:800;margin-bottom:4px">Pengajuan Izin / Cuti</h3>
+      <p style="font-size:12px;color:var(--text-muted)">Isi form berikut, pengajuan akan diproses oleh admin</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tipe Izin *</label>
+      <select class="form-select" id="izinTipe">
+        <option value="">Pilih tipe...</option>
+        <option value="Izin">🙏 Izin</option>
+        <option value="Cuti">🏖️ Cuti</option>
+        <option value="Sakit">🤒 Sakit</option>
+        <option value="Dinas Luar">🚗 Dinas Luar</option>
+        <option value="Keperluan Keluarga">👨‍👩‍👧 Keperluan Keluarga</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label class="form-label">Tanggal Mulai *</label>
+        <input type="date" class="form-control" id="izinTglMulai" onchange="updateIzinHari()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tanggal Selesai</label>
+        <input type="date" class="form-control" id="izinTglSelesai" onchange="updateIzinHari()">
+      </div>
+    </div>
+    <div id="izinHariInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:12px;color:var(--accent)">
+      <i class="fas fa-calendar me-1"></i><span id="izinHariText"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Keterangan</label>
+      <textarea class="form-control" id="izinKeterangan" rows="3" placeholder="Alasan izin/cuti..." style="resize:none"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Foto / Surat Keterangan <span style="font-size:11px;color:var(--text-muted)">(opsional)</span></label>
+      <div onclick="document.getElementById('izinFotoInput').click()"
+           style="border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s"
+           id="izinUploadArea"
+           onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <i class="fas fa-cloud-upload-alt" style="font-size:24px;color:var(--text-muted);display:block;margin-bottom:6px"></i>
+        <p id="izinUploadText" style="font-size:12px;color:var(--text-muted)">Tap untuk upload foto/surat</p>
+      </div>
+      <input type="file" id="izinFotoInput" accept="image/*" style="display:none" onchange="onIzinFotoSelected(event)">
+    </div>
+    <div id="izinFotoPreview" style="display:none;margin-bottom:12px">
+      <img id="izinFotoImg" style="max-width:100%;max-height:160px;border-radius:10px;border:1px solid var(--border)">
+    </div>
+
+    <button class="btn-submit" onclick="submitIzin()" id="btnSubmitIzin">
+      <i class="fas fa-paper-plane"></i> Kirim Pengajuan
+    </button>
+    <div style="height:10px"></div>
+    <button class="btn-secondary" onclick="backToStep2FromIzin()">
+      <i class="fas fa-arrow-left" style="margin-right:6px"></i>Kembali
+    </button>
+  </div>
+
   <!-- STEP 2: MASUKKAN PIN -->
   <div id="step2" style="display:none">
     <div class="form-group">
@@ -672,6 +732,10 @@ body::after {
       <i class="fas fa-camera"></i> Lanjut Ambil Foto
     </button>
     <div style="height:10px"></div>
+    <div class="divider-text">atau</div>
+    <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:10px;color:var(--accent);border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.08)">
+      <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
+    </button>
     <button class="btn-secondary" onclick="backToStep1()">
       <i class="fas fa-arrow-left" style="margin-right:6px"></i>Ganti Nama
     </button>
@@ -764,7 +828,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbx6w8jepBINUj1tPkbrv5DJgC5NU0AHpMPOo292xHe1ri0HYqSU7kslu7sjBRdF70hJ/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyt86WH4yIBeKlILyg2BL4v0jKVPDhZMceiJ6xe_KKMhK5Xli6JSeIvpqLli4jXRZbD/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1265,14 +1329,165 @@ function resetSame() {
 
 // ── HELPERS ─────────────────────────────────────────────────
 function show(stepId) {
-  ['step1','step2','step3','step4'].forEach(id => {
+  ['step1','step2','step3','step4','step5'].forEach(id => {
     document.getElementById(id).style.display = id === stepId ? 'block' : 'none';
   });
+}
+
+// ── IZIN / CUTI FORM ─────────────────────────────────────────
+let izinFotoBase64 = null;
+
+function showIzinForm() {
+  // Reset form izin
+  document.getElementById('izinTipe').value = '';
+  document.getElementById('izinTglMulai').value = '';
+  document.getElementById('izinTglSelesai').value = '';
+  document.getElementById('izinKeterangan').value = '';
+  document.getElementById('izinHariInfo').style.display = 'none';
+  document.getElementById('izinFotoPreview').style.display = 'none';
+  document.getElementById('izinFotoImg').src = '';
+  document.getElementById('izinUploadText').textContent = 'Tap untuk upload foto/surat';
+  izinFotoBase64 = null;
+  show('step5');
+  setDot(5);
+}
+
+function backToStep2FromIzin() {
+  show('step2');
+  setDot(2);
+}
+
+function updateIzinHari() {
+  const mulai   = document.getElementById('izinTglMulai').value;
+  const selesai = document.getElementById('izinTglSelesai').value;
+  const info    = document.getElementById('izinHariInfo');
+  const text    = document.getElementById('izinHariText');
+
+  if (!mulai) { info.style.display = 'none'; return; }
+
+  const d1 = new Date(mulai);
+  const d2 = selesai ? new Date(selesai) : d1;
+
+  if (d2 < d1) {
+    document.getElementById('izinTglSelesai').value = mulai;
+    return updateIzinHari();
+  }
+
+  const hari = Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+  const opts  = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  const mulaiStr   = d1.toLocaleDateString('id-ID', opts);
+  const selesaiStr = d2.toLocaleDateString('id-ID', opts);
+
+  text.textContent = hari === 1
+    ? `${hari} hari — ${mulaiStr}`
+    : `${hari} hari — ${mulaiStr} s/d ${selesaiStr}`;
+
+  info.style.display = 'block';
+}
+
+function onIzinFotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    izinFotoBase64 = dataUrl.split(',')[1];
+
+    document.getElementById('izinFotoImg').src = dataUrl;
+    document.getElementById('izinFotoPreview').style.display = 'block';
+    document.getElementById('izinUploadText').textContent = '✓ ' + file.name;
+    document.getElementById('izinUploadArea').style.borderColor = 'var(--success)';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitIzin() {
+  const tipe     = document.getElementById('izinTipe').value;
+  const tglMulai = document.getElementById('izinTglMulai').value;
+  const tglAkhir = document.getElementById('izinTglSelesai').value;
+  const ket      = document.getElementById('izinKeterangan').value.trim();
+
+  if (!tipe)     { showAlert('Pilih tipe izin terlebih dahulu.', 'error'); return; }
+  if (!tglMulai) { showAlert('Tanggal mulai wajib diisi.', 'error'); return; }
+  if (!State.selectedEmp) { showAlert('Karyawan tidak ditemukan, kembali dan pilih ulang.', 'error'); return; }
+
+  const btn = document.getElementById('btnSubmitIzin');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+  try {
+    const payload = {
+      employee_id:  State.selectedEmp.employee_id,
+      tipe:         tipe,
+      tgl_mulai:    tglMulai,
+      tgl_selesai:  tglAkhir || tglMulai,
+      keterangan:   ket,
+      foto_url:     izinFotoBase64 ? 'base64:' + izinFotoBase64.substring(0, 50) : '',
+      submitted_by: 'karyawan'
+    };
+
+    const res = await callGAS('submitLeaveRequest', payload);
+
+    if (res && res.success) {
+      // Tampilkan sukses
+      show('step5');
+      document.getElementById('step5').innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <div style="width:72px;height:72px;background:rgba(16,185,129,0.15);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px">✅</div>
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--success)">Pengajuan Terkirim!</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Pengajuan <strong>${tipe}</strong> atas nama</p>
+          <p style="font-size:15px;font-weight:700;margin-bottom:4px">${State.selectedEmp.nama}</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">sedang menunggu persetujuan admin.</p>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:left;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+              <span style="color:var(--text-muted)">ID Pengajuan</span>
+              <span style="font-weight:600;font-size:11px">${res.request_id || '—'}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+              <span style="color:var(--text-muted)">Tipe</span>
+              <span style="font-weight:600">${tipe}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+              <span style="color:var(--text-muted)">Tanggal</span>
+              <span style="font-weight:600">${tglMulai}${tglAkhir && tglAkhir !== tglMulai ? ' s/d ' + tglAkhir : ''}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">
+              <span style="color:var(--text-muted)">Jumlah Hari</span>
+              <span style="font-weight:600">${res.jumlah_hari || 1} hari</span>
+            </div>
+          </div>
+
+          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:var(--accent)">
+            <i class="fas fa-info-circle" style="margin-right:6px"></i>
+            Admin akan memproses pengajuan Anda. Status dapat dilihat melalui halaman admin.
+          </div>
+
+          <button class="btn-submit" onclick="resetForm()" style="background:linear-gradient(135deg,var(--success),#059669)">
+            <i class="fas fa-user"></i> Selesai
+          </button>
+          <div style="height:10px"></div>
+          <button class="btn-secondary" onclick="resetForm()">
+            <i class="fas fa-home" style="margin-right:6px"></i>Kembali ke Beranda
+          </button>
+        </div>`;
+    } else {
+      showAlert((res && res.message) || 'Gagal mengirim pengajuan. Coba lagi.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan';
+    }
+  } catch(err) {
+    showAlert('Error: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan';
+  }
 }
 
 function setDot(step) {
   for (let i = 1; i <= 4; i++) {
     const d = document.getElementById('dot' + i);
+    if (!d) continue;
     d.className = 'step-dot';
     if (i < step)  d.classList.add('done');
     if (i === step) d.classList.add('active');
