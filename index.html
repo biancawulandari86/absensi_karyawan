@@ -848,7 +848,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxyZojynYnfnjaNi2h94dh7e2-WnynReJoHuctt0BHhu2aLy3FEOUVaGhdNYkvwy-QN/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxTfHPnZ1OQ7zfnqanEvQb41ck0X9cNe3E3uv4kSUACsa8vsIvFbceuJqlAVeQB5omT/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1011,7 +1011,20 @@ async function autoDetectTipe() {
     });
     if (res && res.success && res.data && res.data.length > 0) {
       const rec = res.data[0];
-      setTipe(rec.check_in && !rec.check_out ? 'pulang' : 'masuk');
+      if (rec.check_in && !rec.check_out) {
+        // Sudah masuk, belum pulang → default pulang
+        setTipe('pulang');
+      } else if (rec.check_in && rec.check_out && rec.metode === 'fingerprint') {
+        // Fingerprint sudah isi check_out tapi karyawan mau absen pulang manual
+        // → tetap bisa pulang, tampilkan info
+        setTipe('pulang');
+        showAlert(
+          'Jam pulang fingerprint: ' + rec.check_out + '. Absen sekarang untuk update ke waktu nyata.',
+          'info'
+        );
+      } else {
+        setTipe('masuk');
+      }
     } else {
       setTipe('masuk');
     }
@@ -1303,6 +1316,9 @@ function showSuccess(res, photoDataUrl) {
           <span class="label">Durasi Kerja</span>
           <span class="value">${res.durasi}</span>
         </div>` : ''}
+        ${res.info ? `<div class="rekap-row" style="margin-top:6px;padding:6px 10px;background:rgba(59,130,246,0.08);border-radius:6px;font-size:11px;color:var(--accent);grid-column:1/-1">
+          <i class="fas fa-info-circle" style="margin-right:4px"></i>${res.info}
+        </div>` : ''}
       </div>
       <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
         <button class="btn-submit" onclick="resetForm()" style="background:linear-gradient(135deg,var(--success),#059669)">
@@ -1358,6 +1374,20 @@ function show(stepId) {
 let izinFotoBase64 = null;
 
 function showIzinForm() {
+  // Wajib PIN sebelum buka form izin
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) {
+    showAlert('Masukkan PIN karyawan Anda terlebih dahulu untuk mengajukan izin.', 'error');
+    document.getElementById('pinInput').focus();
+    return;
+  }
+  if (!/^\d{4,8}$/.test(pin)) {
+    showAlert('PIN harus 4–8 digit angka.', 'error');
+    document.getElementById('pinInput').focus();
+    return;
+  }
+  State.pin = pin;
+
   document.getElementById('izinTipe').value        = '';
   document.getElementById('izinTglMulai').value    = '';
   document.getElementById('izinTglSelesai').value  = '';
@@ -1480,6 +1510,7 @@ async function submitIzin() {
   try {
     const payload = {
       employee_id:  State.selectedEmp.employee_id,
+      pin:          State.pin,
       tipe,
       tgl_mulai:    tglMulai,
       tgl_selesai:  tglAkhir || tglMulai,
