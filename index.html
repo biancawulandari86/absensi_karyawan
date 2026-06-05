@@ -1518,6 +1518,32 @@ function show(stepId) {
   });
 }
 
+function showAlert(msg, type) {
+  const box = document.getElementById('alertBox');
+  if (!box) return;
+  const icons = { error: 'fa-circle-xmark', success: 'fa-circle-check', info: 'fa-circle-info' };
+  box.style.display = 'flex';
+  box.className = 'alert alert-' + (type || 'info');
+  box.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+  if (type !== 'error') {
+    setTimeout(() => hideAlert(), 4000);
+  }
+}
+
+function hideAlert() {
+  const box = document.getElementById('alertBox');
+  if (box) box.style.display = 'none';
+}
+
+function setDot(active) {
+  const dots = document.querySelectorAll('.step-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.remove('active', 'done');
+    if (i + 1 < active)      dot.classList.add('done');
+    else if (i + 1 === active) dot.classList.add('active');
+  });
+}
+
 // ── IZIN / CUTI FORM ─────────────────────────────────────────
 let izinFotoBase64 = null;
 
