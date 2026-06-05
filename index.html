@@ -996,7 +996,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwyJ4tCQj52vGFmnQAVcwKMfsde8M5DGaNc2svXpOLYRcIKFHTNysYBNeK-xHZmXtYq/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycby7I8mLBlMJ7yaDr5MTDunj1Bo_IxNcFHv9htDE7YJWOzatOZJb9tmDQM3zxx6nhdyq/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1041,23 +1041,21 @@ async function callGAS(action, payload = {}) {
   const baseUrl = getGasUrl();
   if (!baseUrl) throw new Error('URL GAS belum dikonfigurasi.');
 
-  // POST dengan URLSearchParams — tidak memicu preflight CORS di GAS
+  // GAS Web App melakukan redirect POST→GET dan body POST hilang saat redirect.
+  // Solusi: kirim sebagai GET dengan query string agar parameter tidak hilang.
   const params = new URLSearchParams();
   params.append('action', action);
   params.append('payload', JSON.stringify(payload));
 
-  // GAS redirect POST → GET secara internal, jadi kita kirim sebagai POST
-  // tapi follow redirect agar response bisa dibaca
-  const res = await fetch(baseUrl, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params.toString()
+  const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.toString();
+
+  const res = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow'
   });
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  // GAS kadang mengembalikan text biasa — pastikan parse JSON dengan aman
   const text = await res.text();
   try {
     return JSON.parse(text);
