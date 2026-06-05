@@ -913,9 +913,8 @@ body::after {
           <i class="fas fa-eye" id="pinEye"></i>
         </button>
       </div>
-      <div style="margin-top:8px;font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center">
-        <span><i class="fas fa-info-circle" style="margin-right:4px"></i>PIN 4–8 digit. Default PIN = 4 digit terakhir No. HP.</span>
-        <button onclick="showStatusPengajuan()" style="background:none;border:none;color:var(--accent-2);font-size:11px;cursor:pointer;font-weight:700;white-space:nowrap;padding:0;font-family:var(--font)"><i class="fas fa-list-check" style="margin-right:3px"></i>Cek Status</button>
+      <div style="margin-top:8px;font-size:12px;color:var(--text-muted)">
+        <i class="fas fa-info-circle" style="margin-right:4px"></i>PIN 4–8 digit. Default PIN = 4 digit terakhir No. HP.
       </div>
     </div>
 
@@ -937,22 +936,19 @@ body::after {
     <button class="btn-submit" onclick="goToStep3()" id="btnLanjutKamera">
       <i class="fas fa-camera"></i> Lanjut Ambil Foto
     </button>
-    <div style="height:10px"></div>
-    <div class="divider-text">atau</div>
-    <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:10px;color:var(--accent);border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.08)">
-      <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
-    </button>
+    <div style="height:8px"></div>
     <button class="btn-lupa-absen" onclick="showKoreksiAbsenForm()">
       <i class="fas fa-clock"></i>Ajukan Koreksi Lupa Absen
     </button>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
-      <button class="btn-secondary" onclick="backToStep1()">
-        <i class="fas fa-arrow-left" style="margin-right:6px"></i>Ganti Nama
-      </button>
-      <button class="btn-cek-status" onclick="showStatusPengajuan()" style="margin-top:0">
-        <i class="fas fa-list-check"></i> Status
-      </button>
-    </div>
+    <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:8px;color:var(--accent);border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.08)">
+      <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
+    </button>
+    <button class="btn-cek-status" onclick="showStatusPengajuan()" style="margin-top:0;margin-bottom:8px">
+      <i class="fas fa-list-check"></i> Cek Status Pengajuan
+    </button>
+    <button class="btn-secondary" onclick="backToStep1()">
+      <i class="fas fa-arrow-left" style="margin-right:6px"></i>Ganti Nama
+    </button>
   </div>
 
   <!-- STEP 3: KAMERA FOTO -->
