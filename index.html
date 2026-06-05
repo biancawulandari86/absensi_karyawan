@@ -587,6 +587,72 @@ body::after {
 .admin-link a:hover { color: var(--accent); }
 
 .form-group { margin-bottom: 16px; }
+
+/* ── LUPA ABSEN BUTTON ── */
+.btn-lupa-absen {
+  width: 100%;
+  padding: 12px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 10px;
+  color: var(--warning);
+  font-weight: 600;
+  font-size: 14px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-lupa-absen:hover {
+  background: rgba(245,158,11,0.18);
+  border-color: var(--warning);
+  transform: translateY(-1px);
+}
+
+/* ── STEP 6: FORM LUPA ABSEN ── */
+#step6 .tipe-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.tipe-koreksi-card {
+  cursor: pointer;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+  background: var(--surface-2);
+}
+.tipe-koreksi-card:hover,
+.tipe-koreksi-card.selected {
+  border-color: var(--warning);
+  background: rgba(245,158,11,0.08);
+}
+.tipe-koreksi-card.selected .tipe-icon { color: var(--warning); }
+.tipe-icon {
+  font-size: 22px;
+  color: var(--text-muted);
+  width: 32px;
+  text-align: center;
+}
+.tipe-info .tipe-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.tipe-info .tipe-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 </style>
 </head>
 <body>
@@ -617,6 +683,7 @@ body::after {
     <div class="step-dot" id="dot2"></div>
     <div class="step-dot" id="dot3"></div>
     <div class="step-dot" id="dot4"></div>
+    <div class="step-dot" id="dot5"></div>
   </div>
 
   <!-- ALERT -->
@@ -715,6 +782,84 @@ body::after {
     </button>
   </div>
 
+  <!-- STEP 6: FORM LUPA ABSEN -->
+  <div id="step6" style="display:none">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="width:56px;height:56px;background:rgba(245,158,11,0.15);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px">⏰</div>
+      <h3 style="font-size:17px;font-weight:800;margin-bottom:4px">Koreksi Absen</h3>
+      <p style="font-size:12px;color:var(--text-muted)">Pengajuan lupa absen akan diverifikasi oleh admin</p>
+    </div>
+
+    <!-- Tipe koreksi -->
+    <div class="form-group">
+      <label class="form-label">Jenis Koreksi *</label>
+      <div class="tipe-grid" id="tipeKoreksiGrid">
+        <div class="tipe-koreksi-card" onclick="selectTipeKoreksi('lupa_masuk')">
+          <span class="tipe-icon">🏃</span>
+          <div class="tipe-info">
+            <div class="tipe-label">Lupa Absen Masuk</div>
+            <div class="tipe-desc">Datang tapi lupa scan/absen masuk</div>
+          </div>
+        </div>
+        <div class="tipe-koreksi-card" onclick="selectTipeKoreksi('lupa_pulang')">
+          <span class="tipe-icon">🏠</span>
+          <div class="tipe-info">
+            <div class="tipe-label">Lupa Absen Pulang</div>
+            <div class="tipe-desc">Sudah absen masuk tapi lupa scan pulang</div>
+          </div>
+        </div>
+        <div class="tipe-koreksi-card" onclick="selectTipeKoreksi('koreksi_jam')">
+          <span class="tipe-icon">✏️</span>
+          <div class="tipe-info">
+            <div class="tipe-label">Koreksi Jam Absen</div>
+            <div class="tipe-desc">Jam absen tercatat salah, ajukan koreksi</div>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="korTipeKoreksi">
+    </div>
+
+    <!-- Tanggal -->
+    <div class="form-group">
+      <label class="form-label">Tanggal *</label>
+      <input type="date" class="form-control" id="korTanggal">
+    </div>
+
+    <!-- Jam masuk -->
+    <div class="form-group" id="korJamMasukGroup" style="display:none">
+      <label class="form-label" id="korJamMasukLabel">Jam Masuk yang Benar *</label>
+      <input type="time" class="form-control" id="korJamMasuk" style="font-size:18px;font-weight:700;letter-spacing:2px">
+    </div>
+
+    <!-- Jam pulang -->
+    <div class="form-group" id="korJamPulangGroup" style="display:none">
+      <label class="form-label" id="korJamPulangLabel">Jam Pulang yang Benar *</label>
+      <input type="time" class="form-control" id="korJamPulang" style="font-size:18px;font-weight:700;letter-spacing:2px">
+    </div>
+
+    <!-- Keterangan -->
+    <div class="form-group">
+      <label class="form-label">Keterangan / Alasan *</label>
+      <textarea class="form-control" id="korKeterangan" rows="3"
+        placeholder="Jelaskan alasan pengajuan koreksi absen..." style="resize:none"></textarea>
+    </div>
+
+    <!-- Info box -->
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--warning)">
+      <i class="fas fa-info-circle" style="margin-right:6px"></i>
+      Pengajuan akan diproses admin. Data absensi akan diperbarui setelah disetujui.
+    </div>
+
+    <button class="btn-submit" onclick="submitKoreksiAbsen()" id="btnSubmitKoreksi"
+      style="background:linear-gradient(135deg,var(--warning),#d97706)">
+      <i class="fas fa-paper-plane"></i> Kirim Pengajuan Koreksi
+    </button>
+    <div style="height:10px"></div>
+    <button class="btn-secondary" onclick="backToStep2FromKoreksi()">
+      <i class="fas fa-arrow-left" style="margin-right:6px"></i>Kembali
+    </button>
+  </div>
+
   <!-- STEP 2: MASUKKAN PIN -->
   <div id="step2" style="display:none">
     <div class="form-group">
@@ -755,6 +900,9 @@ body::after {
     <div class="divider-text">atau</div>
     <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:10px;color:var(--accent);border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.08)">
       <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
+    </button>
+    <button class="btn-lupa-absen" onclick="showKoreksiAbsenForm()">
+      <i class="fas fa-clock"></i>Ajukan Koreksi Lupa Absen
     </button>
     <button class="btn-secondary" onclick="backToStep1()">
       <i class="fas fa-arrow-left" style="margin-right:6px"></i>Ganti Nama
@@ -848,7 +996,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxTfHPnZ1OQ7zfnqanEvQb41ck0X9cNe3E3uv4kSUACsa8vsIvFbceuJqlAVeQB5omT/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzVZzVqdXymZdhmHOpvJ1OnL980VscDqobFUFinvFgvCmFkIJxuSaubG7GVTi1mliqW/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1365,7 +1513,7 @@ function resetSame() {
 
 // ── HELPERS ─────────────────────────────────────────────────
 function show(stepId) {
-  ['step1','step2','step3','step4','step5'].forEach(id => {
+  ['step1','step2','step3','step4','step5','step6'].forEach(id => {
     document.getElementById(id).style.display = id === stepId ? 'block' : 'none';
   });
 }
@@ -1581,6 +1729,164 @@ async function submitIzin() {
     showAlert('Error: ' + err.message, 'error');
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan';
+  }
+}
+
+// ── KOREKSI ABSEN ────────────────────────────────────────────
+let _korTipe = null;
+
+function selectTipeKoreksi(tipe) {
+  _korTipe = tipe;
+  document.getElementById('korTipeKoreksi').value = tipe;
+
+  // Reset card styles
+  document.querySelectorAll('.tipe-koreksi-card').forEach(c => c.classList.remove('selected'));
+  // Highlight selected
+  const idx = { lupa_masuk: 0, lupa_pulang: 1, koreksi_jam: 2 }[tipe];
+  const cards = document.querySelectorAll('.tipe-koreksi-card');
+  if (cards[idx]) cards[idx].classList.add('selected');
+
+  // Tampilkan field jam sesuai tipe
+  const masukGrp  = document.getElementById('korJamMasukGroup');
+  const pulangGrp = document.getElementById('korJamPulangGroup');
+  masukGrp.style.display  = (tipe === 'lupa_masuk'  || tipe === 'koreksi_jam') ? 'block' : 'none';
+  pulangGrp.style.display = (tipe === 'lupa_pulang' || tipe === 'koreksi_jam') ? 'block' : 'none';
+
+  // Set label
+  if (tipe === 'koreksi_jam') {
+    document.getElementById('korJamMasukLabel').textContent  = 'Jam Masuk yang Benar *';
+    document.getElementById('korJamPulangLabel').textContent = 'Jam Pulang yang Benar *';
+  }
+}
+
+function showKoreksiAbsenForm() {
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) {
+    showAlert('Masukkan PIN karyawan Anda terlebih dahulu.', 'error');
+    document.getElementById('pinInput').focus();
+    return;
+  }
+  if (!/^\d{4,8}$/.test(pin)) {
+    showAlert('PIN harus 4–8 digit angka.', 'error');
+    document.getElementById('pinInput').focus();
+    return;
+  }
+  State.pin = pin;
+
+  // Reset form
+  _korTipe = null;
+  document.querySelectorAll('.tipe-koreksi-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('korTipeKoreksi').value   = '';
+  document.getElementById('korTanggal').value       = '';
+  document.getElementById('korJamMasuk').value      = '';
+  document.getElementById('korJamPulang').value     = '';
+  document.getElementById('korKeterangan').value    = '';
+  document.getElementById('korJamMasukGroup').style.display  = 'none';
+  document.getElementById('korJamPulangGroup').style.display = 'none';
+
+  // Set default tanggal ke hari ini
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm   = String(today.getMonth() + 1).padStart(2, '0');
+  const dd   = String(today.getDate()).padStart(2, '0');
+  document.getElementById('korTanggal').value = `${yyyy}-${mm}-${dd}`;
+
+  show('step6');
+  setDot(5);
+}
+
+function backToStep2FromKoreksi() {
+  show('step2');
+  setDot(2);
+}
+
+async function submitKoreksiAbsen() {
+  const tipe     = document.getElementById('korTipeKoreksi').value;
+  const tanggal  = document.getElementById('korTanggal').value;
+  const jamMasuk = document.getElementById('korJamMasuk').value;
+  const jamPulang= document.getElementById('korJamPulang').value;
+  const ket      = document.getElementById('korKeterangan').value.trim();
+
+  if (!tipe)    { showAlert('Pilih jenis koreksi terlebih dahulu.', 'error'); return; }
+  if (!tanggal) { showAlert('Tanggal wajib diisi.', 'error'); return; }
+  if (!ket)     { showAlert('Keterangan / alasan wajib diisi.', 'error'); return; }
+  if ((tipe === 'lupa_masuk'  || tipe === 'koreksi_jam') && !jamMasuk)  {
+    showAlert('Jam masuk wajib diisi.', 'error'); return;
+  }
+  if ((tipe === 'lupa_pulang' || tipe === 'koreksi_jam') && !jamPulang) {
+    showAlert('Jam pulang wajib diisi.', 'error'); return;
+  }
+  if (!State.selectedEmp) {
+    showAlert('Karyawan tidak ditemukan, kembali dan pilih ulang.', 'error'); return;
+  }
+
+  const btn = document.getElementById('btnSubmitKoreksi');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+  try {
+    const res = await callGAS('submitAttendanceCorrection', {
+      employee_id    : State.selectedEmp.employee_id,
+      tanggal_absen  : tanggal,
+      check_in_baru  : jamMasuk  || '',
+      check_out_baru : jamPulang || '',
+      alasan         : ket,
+      submitted_by   : 'karyawan',
+      tipe_koreksi   : tipe
+    });
+
+    if (res && res.success) {
+      const tipeLabel = {
+        lupa_masuk  : 'Lupa Absen Masuk',
+        lupa_pulang : 'Lupa Absen Pulang',
+        koreksi_jam : 'Koreksi Jam Absen'
+      };
+      document.getElementById('step6').innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <div style="width:72px;height:72px;background:rgba(245,158,11,0.15);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px">✅</div>
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--warning)">Pengajuan Terkirim!</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Pengajuan <strong>${tipeLabel[tipe]}</strong> atas nama</p>
+          <p style="font-size:15px;font-weight:700;margin-bottom:4px">${State.selectedEmp.nama}</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">sedang menunggu persetujuan admin.</p>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:left;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+              <span style="color:var(--text-muted)">ID Pengajuan</span>
+              <span style="font-weight:600;font-size:11px">${res.correction_id || '—'}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+              <span style="color:var(--text-muted)">Jenis</span>
+              <span style="font-weight:600">${tipeLabel[tipe]}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;${jamMasuk?'border-bottom:1px solid var(--border);':''}font-size:13px">
+              <span style="color:var(--text-muted)">Tanggal</span>
+              <span style="font-weight:600">${tanggal}</span>
+            </div>
+            ${jamMasuk ? `<div style="display:flex;justify-content:space-between;padding:6px 0;${jamPulang?'border-bottom:1px solid var(--border);':''}font-size:13px">
+              <span style="color:var(--text-muted)">Jam Masuk</span>
+              <span style="font-weight:600">${jamMasuk}</span>
+            </div>` : ''}
+            ${jamPulang ? `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">
+              <span style="color:var(--text-muted)">Jam Pulang</span>
+              <span style="font-weight:600">${jamPulang}</span>
+            </div>` : ''}
+          </div>
+          <button class="btn-submit" onclick="resetForm()" style="background:linear-gradient(135deg,var(--warning),#d97706)">
+            <i class="fas fa-check"></i> Selesai
+          </button>
+          <div style="height:10px"></div>
+          <button class="btn-secondary" onclick="resetForm()">
+            <i class="fas fa-home" style="margin-right:6px"></i>Kembali ke Beranda
+          </button>
+        </div>`;
+    } else {
+      showAlert((res && res.message) || 'Gagal mengirim pengajuan. Coba lagi.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan Koreksi';
+    }
+  } catch (err) {
+    showAlert('Error: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Kirim Pengajuan Koreksi';
   }
 }
 
