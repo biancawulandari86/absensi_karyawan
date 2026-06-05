@@ -653,6 +653,44 @@ body::after {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ── STATUS PENGAJUAN ── */
+.btn-cek-status {
+  width: 100%;
+  padding: 11px;
+  background: rgba(6,182,212,0.08);
+  border: 1px solid rgba(6,182,212,0.3);
+  border-radius: 10px;
+  color: var(--accent-2);
+  font-weight: 600;
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-cek-status:hover { background: rgba(6,182,212,0.15); border-color: var(--accent-2); }
+.status-tabs { display:flex; gap:8px; margin-bottom:16px; }
+.status-tab { flex:1; padding:8px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-size:12px; font-weight:600; font-family:var(--font); cursor:pointer; transition:all 0.2s; text-align:center; }
+.status-tab.active { background:rgba(59,130,246,0.12); border-color:var(--accent); color:var(--accent); }
+.pengajuan-card { background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+.pengajuan-card:last-child { margin-bottom:0; }
+.pengajuan-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.pengajuan-tipe { font-size:13px; font-weight:700; color:var(--text); }
+.pengajuan-meta { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.badge-status { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-pending  { background:rgba(245,158,11,0.15);  color:#f59e0b; border:1px solid rgba(245,158,11,0.3); }
+.badge-approved { background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
+.badge-rejected { background:rgba(239,68,68,0.15);  color:#ef4444; border:1px solid rgba(239,68,68,0.3); }
+.pengajuan-detail { font-size:12px; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:6px; padding-top:8px; border-top:1px solid var(--border); }
+.pengajuan-detail span { display:flex; align-items:center; gap:4px; }
+.pengajuan-detail strong { color:var(--text); }
+.empty-pengajuan { text-align:center; padding:32px 0; color:var(--text-muted); font-size:13px; }
+.empty-pengajuan i { font-size:32px; margin-bottom:10px; display:block; opacity:0.4; }
 </style>
 </head>
 <body>
@@ -699,6 +737,9 @@ body::after {
     </div>
     <button class="btn-submit" onclick="goToStep2()" id="btn1" disabled>
       Lanjut <i class="fas fa-arrow-right"></i>
+    </button>
+    <button class="btn-cek-status" id="btnCekStatus" onclick="showStatusPengajuan()" style="display:none">
+      <i class="fas fa-list-check"></i> Cek Status Pengajuan
     </button>
   </div>
 
@@ -907,6 +948,9 @@ body::after {
     <button class="btn-secondary" onclick="backToStep1()">
       <i class="fas fa-arrow-left" style="margin-right:6px"></i>Ganti Nama
     </button>
+    <button class="btn-cek-status" onclick="showStatusPengajuan()" style="margin-top:6px">
+      <i class="fas fa-list-check"></i> Cek Status Pengajuan
+    </button>
   </div>
 
   <!-- STEP 3: KAMERA FOTO -->
@@ -983,6 +1027,32 @@ body::after {
 
   <!-- STEP 4: SUKSES -->
   <div id="step4" style="display:none"></div>
+
+  <!-- STEP 7: STATUS PENGAJUAN -->
+  <div id="step7" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:2px">Status Pengajuan</h3>
+        <p style="font-size:12px;color:var(--text-muted)" id="statusEmpName">—</p>
+      </div>
+      <button onclick="refreshStatusPengajuan()" style="background:none;border:none;color:var(--accent-2);cursor:pointer;font-size:15px;padding:4px" title="Refresh">
+        <i class="fas fa-rotate-right" id="refreshIcon"></i>
+      </button>
+    </div>
+
+    <div class="status-tabs">
+      <button class="status-tab active" id="tabAll"    onclick="filterStatus('all')">Semua</button>
+      <button class="status-tab"        id="tabPending" onclick="filterStatus('pending')">⏳ Pending</button>
+      <button class="status-tab"        id="tabDone"   onclick="filterStatus('done')">✓ Selesai</button>
+    </div>
+
+    <div id="statusListBox" style="max-height:420px;overflow-y:auto;padding-right:2px"></div>
+
+    <div style="height:14px"></div>
+    <button class="btn-secondary" onclick="backFromStatus()">
+      <i class="fas fa-arrow-left" style="margin-right:6px"></i>Kembali
+    </button>
+  </div>
 
   <div class="admin-link">
     <a href="#" onclick="openAdmin()"><i class="fas fa-shield-alt" style="margin-right:4px"></i>Login Admin</a>
@@ -1134,6 +1204,9 @@ async function loadCompanyName() {
 // ── STEP 1 ─────────────────────────────────────────────────
 function onEmpSelected() {
   document.getElementById('btn1').disabled = !document.getElementById('empSelect').value;
+  const hasEmp = !!document.getElementById('empSelect').value;
+  const btnCek = document.getElementById('btnCekStatus');
+  if (btnCek) btnCek.style.display = hasEmp ? 'flex' : 'none';
   hideAlert();
 }
 
@@ -1511,7 +1584,7 @@ function resetSame() {
 
 // ── HELPERS ─────────────────────────────────────────────────
 function show(stepId) {
-  ['step1','step2','step3','step4','step5','step6'].forEach(id => {
+  ['step1','step2','step3','step4','step5','step6','step7'].forEach(id => {
     document.getElementById(id).style.display = id === stepId ? 'block' : 'none';
   });
 }
@@ -1914,6 +1987,166 @@ async function submitKoreksiAbsen() {
   }
 }
 
+
+// ── STATUS PENGAJUAN ─────────────────────────────────────────
+let _statusPrevStep = 'step1';
+let _allPengajuan   = [];
+let _activeTab      = 'all';
+
+async function showStatusPengajuan() {
+  // Tentukan dari step mana kita datang
+  const steps = ['step1','step2','step3','step4','step5','step6'];
+  for (const s of steps) {
+    const el = document.getElementById(s);
+    if (el && el.style.display !== 'none' && el.style.display !== '') { _statusPrevStep = s; break; }
+  }
+
+  // Pastikan karyawan sudah dipilih
+  if (!State.selectedEmp) {
+    const empId = document.getElementById('empSelect').value;
+    if (!empId) { showAlert('Pilih nama karyawan terlebih dahulu.', 'error'); return; }
+    State.selectedEmp = State.employees.find(e => String(e.employee_id) === String(empId));
+  }
+
+  show('step7');
+  setDot(0);
+  document.getElementById('statusEmpName').textContent = State.selectedEmp ? State.selectedEmp.nama : '—';
+  _activeTab = 'all';
+  document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tabAll').classList.add('active');
+  await loadPengajuanKaryawan();
+}
+
+async function refreshStatusPengajuan() {
+  const icon = document.getElementById('refreshIcon');
+  if (icon) { icon.style.animation = 'spin 0.6s linear infinite'; }
+  await loadPengajuanKaryawan();
+  if (icon) { icon.style.animation = 'none'; }
+}
+
+async function loadPengajuanKaryawan() {
+  const box = document.getElementById('statusListBox');
+  box.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;display:block"></i>Memuat...</div>';
+
+  try {
+    const empId = State.selectedEmp.employee_id;
+    const [resKoreksi, resIzin] = await Promise.all([
+      callGAS('getAttendanceCorrections', { employee_id: empId }),
+      callGAS('getLeaveRequests',         { employee_id: empId })
+    ]);
+
+    _allPengajuan = [];
+
+    if (resKoreksi && resKoreksi.success) {
+      (resKoreksi.data || []).forEach(r => {
+        _allPengajuan.push({
+          jenis   : 'koreksi',
+          id      : r.correction_id,
+          tipe    : r.tipe_koreksi || 'koreksi_jam',
+          tanggal : r.tanggal_absen,
+          status  : r.status,
+          diajukan: r.tgl_pengajuan,
+          alasan  : r.alasan,
+          jamLama : [r.check_in_lama, r.check_out_lama].filter(Boolean).join(' → ') || '-',
+          jamBaru : [r.check_in_baru, r.check_out_baru].filter(Boolean).join(' → ') || '-',
+          catatan : r.catatan_admin || '\'
+        });
+      });
+    }
+
+    if (resIzin && resIzin.success) {
+      (resIzin.data || []).forEach(r => {
+        _allPengajuan.push({
+          jenis   : 'izin',
+          id      : r.request_id,
+          tipe    : r.tipe,
+          tanggal : r.tgl_mulai + (r.tgl_selesai && r.tgl_selesai !== r.tgl_mulai ? ' s/d ' + r.tgl_selesai : '''),
+          status  : r.status,
+          diajukan: r.tgl_pengajuan,
+          alasan  : r.keterangan,
+          catatan : r.catatan_admin || '\'
+        });
+      });
+    }
+
+    // Urutkan terbaru di atas
+    _allPengajuan.sort((a, b) => String(b.diajukan).localeCompare(String(a.diajukan)));
+    renderPengajuan(_allPengajuan);
+
+  } catch (err) {
+    box.innerHTML = `<div class="empty-pengajuan"><i class="fas fa-exclamation-circle"></i>Gagal memuat: ${err.message}</div>`;
+  }
+}
+
+function filterStatus(tab) {
+  _activeTab = tab;
+  document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+  const tabMap = { all:'tabAll', pending:'tabPending', done:'tabDone' };
+  const el = document.getElementById(tabMap[tab]);
+  if (el) el.classList.add('active');
+
+  let filtered = _allPengajuan;
+  if (tab === 'pending') filtered = _allPengajuan.filter(p => p.status === 'pending');
+  if (tab === 'done')    filtered = _allPengajuan.filter(p => p.status !== 'pending');
+  renderPengajuan(filtered);
+}
+
+function renderPengajuan(list) {
+  const box = document.getElementById('statusListBox');
+  if (!list.length) {
+    box.innerHTML = '<div class="empty-pengajuan"><i class="fas fa-inbox"></i>Belum ada pengajuan</div>';
+    return;
+  }
+
+  const tipeLabel = {
+    lupa_masuk  : '🏃 Lupa Absen Masuk',
+    lupa_pulang : '🏠 Lupa Absen Pulang',
+    koreksi_jam : '✏️ Koreksi Jam',
+    Izin        : '🙏 Izin',
+    Cuti        : '🏖️ Cuti',
+    Sakit       : '🤒 Sakit',
+    'Dinas Luar' : '🚗 Dinas Luar',
+    'Keperluan Keluarga' : '👨‍👩‍👧 Keperluan Keluarga'
+  };
+
+  const statusBadge = {
+    pending  : '<span class="badge-status badge-pending"><i class="fas fa-clock"></i> Menunggu</span>',
+    approved : '<span class="badge-status badge-approved"><i class="fas fa-check"></i> Disetujui</span>',
+    rejected : '<span class="badge-status badge-rejected"><i class="fas fa-times"></i> Ditolak</span>'
+  };
+
+  box.innerHTML = list.map(p => {
+    const label  = tipeLabel[p.tipe] || p.tipe;
+    const badge  = statusBadge[p.status] || `<span class="badge-status badge-pending">${p.status}</span>`;
+    const isKoreksi = p.jenis === 'koreksi';
+    const catatanHtml = p.catatan
+      ? `<span><i class="fas fa-comment-dots"></i> <strong>${p.catatan}</strong></span>`
+      : '';
+
+    return `
+<div class="pengajuan-card">
+  <div class="pengajuan-card-header">
+    <div>
+      <div class="pengajuan-tipe">${label}</div>
+      <div class="pengajuan-meta">Tgl: ${p.tanggal} &nbsp;·&nbsp; Diajukan: ${p.diajukan}</div>
+    </div>
+    ${badge}
+  </div>
+  <div class="pengajuan-detail">
+    ${isKoreksi ? `<span><i class="fas fa-clock"></i> Jam lama: <strong>${p.jamLama}</strong></span>` : ''}
+    ${isKoreksi && p.jamBaru !== '-' ? `<span><i class="fas fa-arrow-right"></i> Jam baru: <strong>${p.jamBaru}</strong></span>` : ''}
+    ${p.alasan  ? `<span><i class="fas fa-comment"></i> <strong>${p.alasan}</strong></span>` : ''}
+    ${catatanHtml}
+  </div>
+</div>`;
+  }).join(');
+}
+
+function backFromStatus() {
+  show(_statusPrevStep || 'step1');
+  const stepNum = parseInt((_statusPrevStep || 'step1').replace('step', ''')) || 1;
+  setDot(stepNum);
+}
 // ── INIT ────────────────────────────────────────────────────
 (function init() {
   const url = getGasUrl();
