@@ -738,9 +738,6 @@ body::after {
     <button class="btn-submit" onclick="goToStep2()" id="btn1" disabled>
       Lanjut <i class="fas fa-arrow-right"></i>
     </button>
-    <button class="btn-cek-status" id="btnCekStatus" onclick="showStatusPengajuan()" style="display:none">
-      <i class="fas fa-list-check"></i> Cek Status Pengajuan
-    </button>
   </div>
 
   <!-- STEP 5: FORM PENGAJUAN IZIN -->
@@ -1202,9 +1199,6 @@ async function loadCompanyName() {
 // ── STEP 1 ─────────────────────────────────────────────────
 function onEmpSelected() {
   document.getElementById('btn1').disabled = !document.getElementById('empSelect').value;
-  const hasEmp = !!document.getElementById('empSelect').value;
-  const btnCek = document.getElementById('btnCekStatus');
-  if (btnCek) btnCek.style.display = hasEmp ? 'flex' : 'none';
   hideAlert();
 }
 
