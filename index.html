@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwzvPxaww51MX_TD0atlOuheD-Jxk2k7X7G16ngISG_VI7EyNkbpyumgh7CFvMmMCZ1/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycby4_-n0PR5DoLyAi28VxZHS83Oj04rqHCU-ZUcJ3jS6DIfztNVdB_2fFZEDOz-fw_sb/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1986,6 +1986,7 @@ let _allPengajuan   = [];
 let _activeTab      = 'all';
 
 async function showStatusPengajuan() {
+  // Simpan step aktif saat ini untuk keperluan tombol Kembali
   const steps = ['step1','step2','step3','step4','step5','step6'];
   for (const s of steps) {
     const el = document.getElementById(s);
@@ -1994,15 +1995,63 @@ async function showStatusPengajuan() {
     }
   }
 
+  // Pastikan nama karyawan sudah dipilih
   if (!State.selectedEmp) {
     const empId = document.getElementById('empSelect').value;
     if (!empId) { showAlert('Pilih nama karyawan terlebih dahulu.', 'error'); return; }
     State.selectedEmp = State.employees.find(e => String(e.employee_id) === String(empId));
   }
 
+  // Wajib verifikasi PIN sebelum bisa lihat status pengajuan
+  if (!State.pin) {
+    // Jika belum di step2, arahkan ke step2 dulu
+    show('step2');
+    setDot(2);
+    hideAlert();
+    autoDetectTipe();
+    setTimeout(() => {
+      document.getElementById('pinInput').focus();
+      showAlert('Masukkan PIN karyawan Anda terlebih dahulu untuk melihat status pengajuan.', 'info');
+    }, 100);
+    return;
+  }
+
+  // Verifikasi PIN ke server sebelum tampilkan data
   show('step7');
   setDot(0);
+  const box = document.getElementById('statusListBox');
+  box.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;display:block"></i>Memverifikasi PIN...</div>';
   document.getElementById('statusEmpName').textContent = State.selectedEmp ? State.selectedEmp.nama : '—';
+
+  try {
+    const res = await callGAS('verifyPin', {
+      employee_id: State.selectedEmp.employee_id,
+      pin: State.pin
+    });
+
+    // Jika server tidak punya endpoint verifyPin, fallback: langsung tampilkan
+    if (res === null || (res && res.message && res.message.toLowerCase().includes('unknown'))) {
+      _activeTab = 'all';
+      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tabAll').classList.add('active');
+      await loadPengajuanKaryawan();
+      return;
+    }
+
+    if (!res || !res.success) {
+      // PIN salah — kembali ke step2
+      show('step2');
+      setDot(2);
+      document.getElementById('pinInput').value = '';
+      State.pin = '';
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+      showAlert(res && res.message ? res.message : 'PIN salah. Masukkan PIN yang benar.', 'error');
+      return;
+    }
+  } catch (e) {
+    // Jika endpoint tidak ada di server, lanjut saja (graceful fallback)
+  }
+
   _activeTab = 'all';
   document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tabAll').classList.add('active');
