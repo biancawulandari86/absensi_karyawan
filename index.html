@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzq_l9QiszoWPiKYOJ5Uk_8Csrf7UWUdugm9pqWnliWF8rb2u8IYWobtElMpkzjoG1_/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzt3FV-6O3egujFB2O7SQ_Ufl-mBl2cP-BjnxH0RaD57sEmRDRoHbPQFasfcvJC0KY/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1127,6 +1127,25 @@ async function callGAS(action, payload = {}) {
   } catch (_) {
     throw new Error('Response bukan JSON: ' + text.slice(0, 100));
   }
+}
+
+// ── callGAS via POST (untuk payload besar seperti foto) ────
+async function callGASPost(action, payload = {}) {
+  const baseUrl = getGasUrl();
+  if (!baseUrl) throw new Error('URL GAS belum dikonfigurasi.');
+
+  const body = JSON.stringify({ action, payload });
+  const res = await fetch(baseUrl, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'application/json' },
+    body
+  });
+
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  try { return JSON.parse(text); }
+  catch (_) { throw new Error('Response bukan JSON: ' + text.slice(0, 100)); }
 }
 
 // ── CLOCK ──────────────────────────────────────────────────
@@ -1772,7 +1791,7 @@ async function submitIzin() {
       submitted_by: 'karyawan'
     };
 
-    const res = await callGAS('submitLeaveRequest', payload);
+    const res = await callGASPost('submitLeaveRequest', payload);
 
     if (res && res.success) {
       show('step5');
