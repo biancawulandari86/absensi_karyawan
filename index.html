@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxsTQalEABNl-h_K1DJHrn6SeUuxi2d36vbvsuIK-Rir294VdHw2iTR3GkAc2yijjpk/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzDaCiMSoanZ1fNhNh7bfwc6zVZCAYOu4jj7nEqOec7n5HFx-vC2KtCWdeaJDKJ_aVv/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1168,13 +1168,11 @@ async function callGASPost(action, payload = {}) {
   return result;
 }
 
-// ── Upload foto ke GAS secara terpisah ─────────────────────
-// Menggunakan GET dengan query string per chunk.
-// GAS Web App melakukan redirect POST→GET sehingga POST body hilang,
-// maka GET adalah satu-satunya cara yang andal untuk mengirim data.
+// ── Upload foto lampiran izin ke GAS (chunked GET) ──────────
+// CHUNK_SIZE 5000: aman untuk URL GET limit (~8000) DAN
+// PropertiesService value limit (9000 chars) di GAS
 async function uploadFotoLampiran(baseUrl, requestId, employeeId, fotoBase64) {
-  const CHUNK_SIZE = 30000; // ~30KB per chunk agar URL tidak terlalu panjang
-
+  const CHUNK_SIZE  = 5000;
   const totalChunks = Math.ceil(fotoBase64.length / CHUNK_SIZE);
 
   for (let i = 0; i < totalChunks; i++) {
@@ -1193,13 +1191,11 @@ async function uploadFotoLampiran(baseUrl, requestId, employeeId, fotoBase64) {
     const res = await fetch(url, { method: 'GET', redirect: 'follow' });
     if (!res.ok) throw new Error('Upload chunk ' + i + ' gagal: HTTP ' + res.status);
 
-    // Beri jeda antar chunk agar GAS sempat proses
     if (i < totalChunks - 1) {
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 300));
     }
   }
-
-  return { success: true, message: 'Foto dikirim.' };
+  return { success: true };
 }
 
 // ── CLOCK ──────────────────────────────────────────────────
@@ -1794,7 +1790,8 @@ function onIzinFotoSelected(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    compressImage(e.target.result, 800, 0.7, function(compressed) {
+    // 800px, quality 0.75 — terbaca tapi tidak terlalu besar
+    compressImage(e.target.result, 800, 0.75, function(compressed) {
       izinFotoBase64 = compressed.split(',')[1];
       document.getElementById('izinFotoImg').src = compressed;
       document.getElementById('izinFotoPreview').style.display = 'block';
