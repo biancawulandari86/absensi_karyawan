@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzt3FV-6O3egujFB2O7SQ_Ufl-mBl2cP-BjnxH0RaD57sEmRDRoHbPQFasfcvJC0KY/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzs_YwGR2ox99CMU7KUSPpjRjnXzv7hMCjGPzwhgCesk7yKkKHhlKTWoX5AdBCdnW3X/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1130,22 +1130,79 @@ async function callGAS(action, payload = {}) {
 }
 
 // ── callGAS via POST (untuk payload besar seperti foto) ────
+// Menggunakan dua langkah:
+// 1. Submit data utama via GET (tanpa foto) → dapat request_id
+// 2. Upload foto via GET dengan chunk kecil (foto sudah dikompresi agresif)
 async function callGASPost(action, payload = {}) {
   const baseUrl = getGasUrl();
   if (!baseUrl) throw new Error('URL GAS belum dikonfigurasi.');
 
-  const body = JSON.stringify({ action, payload });
-  const res = await fetch(baseUrl, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'application/json' },
-    body
-  });
+  // Pisahkan foto_base64 dari payload utama
+  const fotoBase64 = payload.foto_base64 || '';
+  const payloadTanpaFoto = { ...payload };
+  delete payloadTanpaFoto.foto_base64;
 
+  // ─── Step 1: Kirim data utama via GET (tanpa foto) ───────
+  const params = new URLSearchParams();
+  params.append('action', action);
+  params.append('payload', JSON.stringify(payloadTanpaFoto));
+  const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.toString();
+
+  const res = await fetch(url, { method: 'GET', redirect: 'follow' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const text = await res.text();
-  try { return JSON.parse(text); }
+  let result;
+  try { result = JSON.parse(text); }
   catch (_) { throw new Error('Response bukan JSON: ' + text.slice(0, 100)); }
+
+  // ─── Step 2: Upload foto terpisah jika ada ───────────────
+  if (result && result.success && fotoBase64 && result.request_id) {
+    try {
+      await uploadFotoLampiran(baseUrl, result.request_id, payloadTanpaFoto.employee_id || '', fotoBase64);
+    } catch (fotoErr) {
+      console.warn('Upload foto gagal (pengajuan tetap tersimpan):', fotoErr.message);
+      result.foto_warning = fotoErr.message;
+    }
+  }
+
+  return result;
+}
+
+// ── Upload foto ke GAS secara terpisah ─────────────────────
+// Foto dikompres ke ukuran kecil lalu dikirim via GET URL.
+// Jika masih terlalu besar, potong menjadi 2 bagian (chunked).
+async function uploadFotoLampiran(baseUrl, requestId, employeeId, fotoBase64) {
+  const MAX_CHUNK = 30000; // ~30KB per GET request (safe limit)
+
+  // Coba kirim langsung jika ukuran kecil
+  if (fotoBase64.length <= MAX_CHUNK) {
+    const params = new URLSearchParams();
+    params.append('action', 'uploadLeaveFoto');
+    params.append('payload', JSON.stringify({ request_id: requestId, employee_id: employeeId, foto_base64: fotoBase64 }));
+    const res = await fetch(baseUrl + '?' + params.toString(), { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return JSON.parse(await res.text());
+  }
+
+  // Foto terlalu besar → kirim dalam chunks
+  const totalChunks = Math.ceil(fotoBase64.length / MAX_CHUNK);
+  for (let i = 0; i < totalChunks; i++) {
+    const chunk = fotoBase64.slice(i * MAX_CHUNK, (i + 1) * MAX_CHUNK);
+    const params = new URLSearchParams();
+    params.append('action', 'uploadLeaveFotoChunk');
+    params.append('payload', JSON.stringify({
+      request_id: requestId,
+      employee_id: employeeId,
+      chunk,
+      chunk_index: i,
+      total_chunks: totalChunks
+    }));
+    const res = await fetch(baseUrl + '?' + params.toString(), { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' (chunk ' + i + ')');
+    const chunkResult = JSON.parse(await res.text());
+    if (!chunkResult.success) throw new Error(chunkResult.message || 'Chunk upload gagal');
+    if (chunkResult.foto_url) return chunkResult; // selesai
+  }
 }
 
 // ── CLOCK ──────────────────────────────────────────────────
@@ -1740,7 +1797,7 @@ function onIzinFotoSelected(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    compressImage(e.target.result, 600, 0.5, function(compressed) {
+    compressImage(e.target.result, 400, 0.4, function(compressed) {
       izinFotoBase64 = compressed.split(',')[1];
       document.getElementById('izinFotoImg').src = compressed;
       document.getElementById('izinFotoPreview').style.display = 'block';
