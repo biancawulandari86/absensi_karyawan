@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyth9RMyT6b69xPGTScuCOF3nwPW4mhABHzye8Mp5eLPO_cS7w6WPfyRnnM90VT-qEy/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzq_l9QiszoWPiKYOJ5Uk_8Csrf7UWUdugm9pqWnliWF8rb2u8IYWobtElMpkzjoG1_/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1721,7 +1721,7 @@ function onIzinFotoSelected(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    compressImage(e.target.result, 800, 0.6, function(compressed) {
+    compressImage(e.target.result, 600, 0.5, function(compressed) {
       izinFotoBase64 = compressed.split(',')[1];
       document.getElementById('izinFotoImg').src = compressed;
       document.getElementById('izinFotoPreview').style.display = 'block';
@@ -1768,7 +1768,7 @@ async function submitIzin() {
       jam_mulai:    jamMulai || '',
       jam_selesai:  jamSls   || '',
       keterangan:   ketFinal,
-      foto_url:     izinFotoBase64 ? 'base64:' + izinFotoBase64 : '',
+      foto_base64:  izinFotoBase64 || '',
       submitted_by: 'karyawan'
     };
 
