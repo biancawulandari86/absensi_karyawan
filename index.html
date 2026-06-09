@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwv3A59kOgstjWLq6HxARyDdJ4HRemmOqRjsdsx_n1F9vmyL9dHh4a61NCECXpENfcL/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxsTQalEABNl-h_K1DJHrn6SeUuxi2d36vbvsuIK-Rir294VdHw2iTR3GkAc2yijjpk/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1169,37 +1169,33 @@ async function callGASPost(action, payload = {}) {
 }
 
 // ── Upload foto ke GAS secara terpisah ─────────────────────
-// Menggunakan POST no-cors + form-urlencoded agar tidak trigger
-// CORS preflight dan tidak kena batas panjang URL GET.
+// Menggunakan GET dengan query string per chunk.
+// GAS Web App melakukan redirect POST→GET sehingga POST body hilang,
+// maka GET adalah satu-satunya cara yang andal untuk mengirim data.
 async function uploadFotoLampiran(baseUrl, requestId, employeeId, fotoBase64) {
-  const CHUNK_SIZE = 30000; // ~30KB per chunk
+  const CHUNK_SIZE = 30000; // ~30KB per chunk agar URL tidak terlalu panjang
 
   const totalChunks = Math.ceil(fotoBase64.length / CHUNK_SIZE);
 
   for (let i = 0; i < totalChunks; i++) {
-    const chunk = fotoBase64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+    const chunk    = fotoBase64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
     const isSingle = totalChunks === 1;
     const action   = isSingle ? 'uploadLeaveFoto' : 'uploadLeaveFotoChunk';
     const pl       = isSingle
       ? { request_id: requestId, employee_id: employeeId, foto_base64: chunk }
       : { request_id: requestId, employee_id: employeeId, chunk, chunk_index: i, total_chunks: totalChunks };
 
-    const body = new URLSearchParams();
-    body.append('action', action);
-    body.append('payload', JSON.stringify(pl));
+    const params = new URLSearchParams();
+    params.append('action', action);
+    params.append('payload', JSON.stringify(pl));
+    const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.toString();
 
-    // Gunakan no-cors agar tidak kena CORS block dari GitHub Pages ke GAS.
-    // Response jadi opaque (tidak bisa dibaca) tapi GAS tetap menerima data.
-    await fetch(baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-      mode: 'no-cors'
-    });
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error('Upload chunk ' + i + ' gagal: HTTP ' + res.status);
 
     // Beri jeda antar chunk agar GAS sempat proses
     if (i < totalChunks - 1) {
-      await new Promise(r => setTimeout(r, 700));
+      await new Promise(r => setTimeout(r, 500));
     }
   }
 
@@ -1798,7 +1794,7 @@ function onIzinFotoSelected(event) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    compressImage(e.target.result, 300, 0.3, function(compressed) {
+    compressImage(e.target.result, 800, 0.7, function(compressed) {
       izinFotoBase64 = compressed.split(',')[1];
       document.getElementById('izinFotoImg').src = compressed;
       document.getElementById('izinFotoPreview').style.display = 'block';
