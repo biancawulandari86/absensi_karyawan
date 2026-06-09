@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzXw_rjpO83UWW7ijqGw0MQC8hUjJaE0UBjU0j9FUKlp1vcj-L5ds6lag-ndijgknyi/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyth9RMyT6b69xPGTScuCOF3nwPW4mhABHzye8Mp5eLPO_cS7w6WPfyRnnM90VT-qEy/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1754,7 +1754,7 @@ async function submitIzin() {
       jam_mulai:    jamMulai || '',
       jam_selesai:  jamSls   || '',
       keterangan:   ketFinal,
-      foto_url:     izinFotoBase64 ? 'base64:' + izinFotoBase64.substring(0, 50) : '',
+      foto_url:     izinFotoBase64 ? 'base64:' + izinFotoBase64 : '',
       submitted_by: 'karyawan'
     };
 
