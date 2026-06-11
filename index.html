@@ -1061,7 +1061,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwVDlUhwmACc9HlYJPaIkxDqNVBtyvPP9mHZ_u0QxJEe-fLm99_KRDrfYYBLVULI9jX/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzFx2AGWbpBX6s4l1GikkuSPO35iWMMja-zT9NxpF0btGxzrSPGc1P3F6R1zKLZo7Qg/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1156,11 +1156,13 @@ async function callGASPost(action, payload = {}) {
   catch (_) { throw new Error('Response bukan JSON: ' + text.slice(0, 100)); }
 
   // ─── Step 2: Upload foto terpisah jika ada ───────────────
-  if (result && result.success && fotoBase64 && result.request_id) {
+  // Support request_id (izin) maupun attendance_id (absensi)
+  const recordId = (result && (result.request_id || result.attendance_id)) || '';
+  if (result && result.success && fotoBase64 && recordId) {
     try {
-      await uploadFotoLampiran(baseUrl, result.request_id, payloadTanpaFoto.employee_id || '', fotoBase64);
+      await uploadFotoLampiran(baseUrl, recordId, payloadTanpaFoto.employee_id || '', fotoBase64, action);
     } catch (fotoErr) {
-      console.warn('Upload foto gagal (pengajuan tetap tersimpan):', fotoErr.message);
+      console.warn('Upload foto gagal (data tetap tersimpan):', fotoErr.message);
       result.foto_warning = fotoErr.message;
     }
   }
@@ -1168,20 +1170,30 @@ async function callGASPost(action, payload = {}) {
   return result;
 }
 
-// ── Upload foto lampiran izin ke GAS (chunked GET) ──────────
+// ── Upload foto lampiran ke GAS (chunked GET) ──────────────
 // CHUNK_SIZE 5000: aman untuk URL GET limit (~8000) DAN
 // PropertiesService value limit (9000 chars) di GAS
-async function uploadFotoLampiran(baseUrl, requestId, employeeId, fotoBase64) {
+async function uploadFotoLampiran(baseUrl, recordId, employeeId, fotoBase64, parentAction) {
   const CHUNK_SIZE  = 5000;
   const totalChunks = Math.ceil(fotoBase64.length / CHUNK_SIZE);
+  const isAbsensi   = parentAction === 'employeeAttendance';
 
   for (let i = 0; i < totalChunks; i++) {
     const chunk    = fotoBase64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
     const isSingle = totalChunks === 1;
-    const action   = isSingle ? 'uploadLeaveFoto' : 'uploadLeaveFotoChunk';
-    const pl       = isSingle
-      ? { request_id: requestId, employee_id: employeeId, foto_base64: chunk }
-      : { request_id: requestId, employee_id: employeeId, chunk, chunk_index: i, total_chunks: totalChunks };
+
+    let action, pl;
+    if (isAbsensi) {
+      // Absensi: kirim semua dalam satu chunk ke uploadAttendanceFoto
+      action = 'uploadAttendanceFoto';
+      pl     = { attendance_id: recordId, employee_id: employeeId, foto_base64: chunk };
+    } else {
+      // Izin: chunked upload
+      action = isSingle ? 'uploadLeaveFoto' : 'uploadLeaveFotoChunk';
+      pl     = isSingle
+        ? { request_id: recordId, employee_id: employeeId, foto_base64: chunk }
+        : { request_id: recordId, employee_id: employeeId, chunk, chunk_index: i, total_chunks: totalChunks };
+    }
 
     const params = new URLSearchParams();
     params.append('action', action);
