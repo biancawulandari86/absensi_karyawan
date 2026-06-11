@@ -1512,7 +1512,6 @@ async function doAbsensi(photoDataUrl) {
       });
     }
 
-  try {
     const res = await callGASPost('employeeAttendance', {
       employee_id: State.selectedEmp.employee_id,
       pin:         State.pin,
@@ -1529,7 +1528,6 @@ async function doAbsensi(photoDataUrl) {
     } else {
       showAlert(res.message || 'Absensi gagal.', 'error');
       resetCamButtons();
-      // Kembali ke step PIN jika PIN salah
       if (res.message && res.message.toLowerCase().includes('pin')) {
         setTimeout(() => {
           stopCamera();
