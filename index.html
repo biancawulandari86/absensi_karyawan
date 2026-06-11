@@ -1445,7 +1445,7 @@ function capturePhoto() {
   ctx.fillStyle = '#fbbf24';
   ctx.fillText(tsStr, 12, canvas.height - barH + 40);
 
-  State.photoDataUrl = canvas.toDataURL('image/jpeg', 0.80);
+  State.photoDataUrl = canvas.toDataURL('image/jpeg', 0.75);
 
   stopCamera();
   stopTsOverlay();
@@ -1488,13 +1488,20 @@ async function doAbsensi(photoDataUrl) {
   State.processing = true;
   hideAlert();
 
-  let fotoBase64 = '';
-  if (photoDataUrl) {
-    fotoBase64 = photoDataUrl.split(',')[1] || '';
-  }
+  try {
+    // Kompres foto sama seperti pengajuan izin: max 800px, quality 0.75
+    let fotoBase64 = '';
+    if (photoDataUrl) {
+      await new Promise(resolve => {
+        compressImage(photoDataUrl, 800, 0.75, function(compressed) {
+          fotoBase64 = compressed.split(',')[1] || '';
+          resolve();
+        });
+      });
+    }
 
   try {
-    const res = await callGAS('employeeAttendance', {
+    const res = await callGASPost('employeeAttendance', {
       employee_id: State.selectedEmp.employee_id,
       pin:         State.pin,
       tipe:        State.tipe,
