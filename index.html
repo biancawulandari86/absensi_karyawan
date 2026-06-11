@@ -10,22 +10,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --primary:    #0f172a;
-  --secondary:  #1e293b;
-  --accent:     #3b82f6;
-  --accent-2:   #06b6d4;
-  --success:    #10b981;
-  --warning:    #f59e0b;
-  --danger:     #ef4444;
-  --surface:    #1e293b;
-  --surface-2:  #273549;
-  --border:     rgba(148,163,184,0.12);
-  --text:       #f1f5f9;
-  --text-muted: #94a3b8;
+  --primary:    #fff5f5;
+  --secondary:  #ffffff;
+  --accent:     #dc2626;
+  --accent-2:   #b91c1c;
+  --success:    #16a34a;
+  --warning:    #d97706;
+  --danger:     #dc2626;
+  --surface:    #ffffff;
+  --surface-2:  #fef2f2;
+  --border:     rgba(220,38,38,0.15);
+  --text:       #1a1a1a;
+  --text-muted: #6b7280;
   --font:       'Plus Jakarta Sans', sans-serif;
   --mono:       'JetBrains Mono', monospace;
   --radius:     12px;
-  --shadow:     0 4px 24px rgba(0,0,0,0.3);
+  --shadow:     0 4px 24px rgba(220,38,38,0.10);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,7 +47,7 @@ body::before {
   content: '';
   position: fixed;
   width: 700px; height: 700px;
-  background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(220,38,38,0.07) 0%, transparent 70%);
   top: -300px; right: -200px;
   border-radius: 50%;
   pointer-events: none;
@@ -56,7 +56,7 @@ body::after {
   content: '';
   position: fixed;
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(185,28,28,0.05) 0%, transparent 70%);
   bottom: -100px; left: -100px;
   border-radius: 50%;
   pointer-events: none;
@@ -95,7 +95,7 @@ body::after {
   font-size: 30px;
   color: white;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+  box-shadow: 0 8px 24px rgba(220,38,38,0.25);
 }
 .att-header h1 {
   font-size: 22px;
@@ -140,10 +140,10 @@ body::after {
 }
 .form-control:focus, .form-select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
 }
 .form-control::placeholder { color: var(--text-muted); }
-.form-select option { background: var(--secondary); }
+.form-select option { background: #ffffff; color: #1a1a1a; }
 
 /* PIN INPUT */
 .pin-wrap { position: relative; }
@@ -185,7 +185,7 @@ body::after {
 }
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+  box-shadow: 0 6px 20px rgba(220,38,38,0.30);
 }
 .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -202,7 +202,7 @@ body::after {
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-secondary:hover { background: rgba(148,163,184,0.1); color: var(--text); }
+.btn-secondary:hover { background: rgba(0,0,0,0.05); color: var(--text); }
 
 /* DIVIDER */
 .divider-text {
@@ -236,7 +236,7 @@ body::after {
 }
 .alert-error   { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
 .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
-.alert-info    { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: #60a5fa; }
+.alert-info    { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.20); color: var(--accent); }
 
 /* SUCCESS STATE */
 .success-state {
@@ -331,8 +331,8 @@ body::after {
 .camera-header { text-align: center; margin-bottom: 16px; }
 .camera-header .cam-icon {
   width: 56px; height: 56px;
-  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(6,182,212,0.2));
-  border: 2px solid rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, rgba(220,38,38,0.12), rgba(220,38,38,0.12));
+  border: 2px solid rgba(220,38,38,0.20);
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
@@ -461,7 +461,7 @@ body::after {
 }
 .btn-confirm-photo:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(59,130,246,0.35);
+  box-shadow: 0 6px 20px rgba(220,38,38,0.28);
 }
 .btn-confirm-photo:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -658,8 +658,8 @@ body::after {
 .btn-cek-status {
   width: 100%;
   padding: 11px;
-  background: rgba(6,182,212,0.08);
-  border: 1px solid rgba(6,182,212,0.3);
+  background: rgba(220,38,38,0.06);
+  border: 1px solid rgba(220,38,38,0.20);
   border-radius: 10px;
   color: var(--accent-2);
   font-weight: 600;
@@ -673,10 +673,10 @@ body::after {
   justify-content: center;
   gap: 8px;
 }
-.btn-cek-status:hover { background: rgba(6,182,212,0.15); border-color: var(--accent-2); }
+.btn-cek-status:hover { background: rgba(220,38,38,0.10); border-color: var(--accent-2); }
 .status-tabs { display:flex; gap:8px; margin-bottom:16px; }
 .status-tab { flex:1; padding:8px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-size:12px; font-weight:600; font-family:var(--font); cursor:pointer; transition:all 0.2s; text-align:center; }
-.status-tab.active { background:rgba(59,130,246,0.12); border-color:var(--accent); color:var(--accent); }
+.status-tab.active { background:rgba(220,38,38,0.10); border-color:var(--accent); color:var(--accent); }
 .pengajuan-card { background:var(--surface-2); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
 .pengajuan-card:last-child { margin-bottom:0; }
 .pengajuan-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
@@ -743,7 +743,7 @@ body::after {
   <!-- STEP 5: FORM PENGAJUAN IZIN -->
   <div id="step5" style="display:none">
     <div style="text-align:center;margin-bottom:20px">
-      <div style="width:56px;height:56px;background:rgba(59,130,246,0.15);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px">📋</div>
+      <div style="width:56px;height:56px;background:rgba(220,38,38,0.10);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px">📋</div>
       <h3 style="font-size:17px;font-weight:800;margin-bottom:4px">Pengajuan Izin / Cuti</h3>
       <p style="font-size:12px;color:var(--text-muted)">Isi form berikut, pengajuan akan diproses oleh admin</p>
     </div>
@@ -789,7 +789,7 @@ body::after {
       </div>
     </div>
 
-        <div id="izinHariInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);border-radius:8px;font-size:12px;color:var(--accent)">
+        <div id="izinHariInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.12);border-radius:8px;font-size:12px;color:var(--accent)">
       <i class="fas fa-calendar me-1"></i><span id="izinHariText"></span>
     </div>
     <div class="form-group">
@@ -937,7 +937,7 @@ body::after {
     <button class="btn-lupa-absen" onclick="showKoreksiAbsenForm()">
       <i class="fas fa-clock"></i>Ajukan Koreksi Lupa Absen
     </button>
-    <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:8px;color:var(--accent);border-color:rgba(59,130,246,0.3);background:rgba(59,130,246,0.08)">
+    <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:8px;color:var(--accent);border-color:rgba(220,38,38,0.20);background:rgba(220,38,38,0.06)">
       <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
     </button>
     <button class="btn-cek-status" onclick="showStatusPengajuan()" style="margin-top:0;margin-bottom:8px">
@@ -1438,7 +1438,7 @@ function capturePhoto() {
   ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
 
   ctx.font = 'bold 15px monospace';
-  ctx.fillStyle = '#06b6d4';
+  ctx.fillStyle = '#dc2626';
   ctx.fillText(nama + ' · ' + tipe, 12, canvas.height - barH + 20);
 
   ctx.font = '13px monospace';
@@ -1596,7 +1596,7 @@ function showSuccess(res, photoDataUrl) {
           <span class="label">Durasi Kerja</span>
           <span class="value">${res.durasi}</span>
         </div>` : ''}
-        ${res.info ? `<div class="rekap-row" style="margin-top:6px;padding:6px 10px;background:rgba(59,130,246,0.08);border-radius:6px;font-size:11px;color:var(--accent);grid-column:1/-1">
+        ${res.info ? `<div class="rekap-row" style="margin-top:6px;padding:6px 10px;background:rgba(220,38,38,0.06);border-radius:6px;font-size:11px;color:var(--accent);grid-column:1/-1">
           <i class="fas fa-info-circle" style="margin-right:4px"></i>${res.info}
         </div>` : ''}
       </div>
@@ -1881,7 +1881,7 @@ async function submitIzin() {
               <span style="font-weight:600">${res.jumlah_hari || 1} hari</span>
             </div>
           </div>
-          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:var(--accent)">
+          <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.12);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:var(--accent)">
             <i class="fas fa-info-circle" style="margin-right:6px"></i>
             Admin akan memproses pengajuan Anda.
           </div>
