@@ -744,7 +744,7 @@ body::after {
   <div id="step5" style="display:none">
     <div style="text-align:center;margin-bottom:20px">
       <div style="width:56px;height:56px;background:rgba(220,38,38,0.10);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px">📋</div>
-      <h3 style="font-size:17px;font-weight:800;margin-bottom:4px">Pengajuan Izin / Cuti</h3>
+      <h3 style="font-size:17px;font-weight:800;margin-bottom:4px">Pengajuan Absensi</h3>
       <p style="font-size:12px;color:var(--text-muted)">Isi form berikut, pengajuan akan diproses oleh admin</p>
     </div>
 
@@ -757,6 +757,7 @@ body::after {
         <option value="Sakit">🤒 Sakit</option>
         <option value="Dinas Luar">🚗 Dinas Luar</option>
         <option value="Keperluan Keluarga">👨‍👩‍👧 Keperluan Keluarga</option>
+        <option value="Izin Keluar Sementara">🚶 Izin Keluar Saat Jam Kerja</option>
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -786,6 +787,30 @@ body::after {
           <label class="form-label">Jam Selesai</label>
           <input type="time" class="form-control" id="izinJamSelesai" onchange="updateIzinHari()" style="font-size:15px;font-weight:600">
         </div>
+      </div>
+    </div>
+
+    <!-- SECTION JAM khusus Izin Keluar Sementara -->
+    <div id="izinKeluarSection" style="display:none;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;margin-top:4px">
+        <div style="flex:1;height:1px;background:rgba(124,58,237,0.25)"></div>
+        <span style="font-size:11px;color:#7c3aed;white-space:nowrap;font-weight:600">🚶 Jam Keluar &amp; Kembali</span>
+        <div style="flex:1;height:1px;background:rgba(124,58,237,0.25)"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label" style="color:#7c3aed">Jam Keluar *</label>
+          <input type="time" class="form-control" id="ikJamKeluar" onchange="updateIzinHari()"
+            style="font-size:15px;font-weight:600;border-color:rgba(124,58,237,0.3)">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="color:#7c3aed">Jam Kembali *</label>
+          <input type="time" class="form-control" id="ikJamKembali" onchange="updateIzinHari()"
+            style="font-size:15px;font-weight:600;border-color:rgba(124,58,237,0.3)">
+        </div>
+      </div>
+      <div id="ikDurasiInfo" style="display:none;margin-top:4px;padding:8px 12px;background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.2);border-radius:8px;font-size:12px;color:#7c3aed">
+        <i class="fas fa-clock" style="margin-right:6px"></i><span id="ikDurasiText"></span>
       </div>
     </div>
 
@@ -938,7 +963,7 @@ body::after {
       <i class="fas fa-clock"></i>Ajukan Koreksi Lupa Absen
     </button>
     <button class="btn-secondary" onclick="showIzinForm()" style="margin-bottom:8px;color:var(--accent);border-color:rgba(220,38,38,0.20);background:rgba(220,38,38,0.06)">
-      <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Ajukan Izin / Cuti / Sakit
+      <i class="fas fa-file-medical-alt" style="margin-right:6px"></i>Pengajuan Absensi
     </button>
     <button class="btn-cek-status" onclick="showStatusPengajuan()" style="margin-top:0;margin-bottom:8px">
       <i class="fas fa-list-check"></i> Cek Status Pengajuan
@@ -1061,7 +1086,7 @@ body::after {
 // Format: https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
 // Atau biarkan kosong '' — nanti akan muncul banner konfigurasi.
 // ══════════════════════════════════════════════════════════════
-const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxH9Jm922P91a1vVPrqNV9K7YZaZIgY4_rBoUxns7bkOOJYu5O51GYRfXsLAJxlxt_3/exec'; // ← ISI URL GAS ANDA DI SINI
+const GAS_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyR66O-2d-_A3bE9A36tlzfM_d37h7K46C9DgT9Oh6ZLIhHOLyJz3K2c3HX4_k54tjn/exec'; // ← ISI URL GAS ANDA DI SINI
 
 // ── GAS URL management ──────────────────────────────────────
 function getGasUrl() {
@@ -1717,6 +1742,8 @@ function showIzinForm() {
   document.getElementById('izinKeterangan').value  = '';
   document.getElementById('izinHariInfo').style.display    = 'none';
   document.getElementById('izinJamSection').style.display  = 'none';
+  document.getElementById('izinKeluarSection').style.display = 'none';
+  document.getElementById('ikDurasiInfo').style.display    = 'none';
   document.getElementById('izinFotoPreview').style.display = 'none';
   document.getElementById('izinFotoImg').src = '';
   document.getElementById('izinUploadText').textContent = 'Tap untuk upload foto/surat';
@@ -1725,19 +1752,42 @@ function showIzinForm() {
   const jamEl2 = document.getElementById('izinJamSelesai');
   if (jamEl) jamEl.value = '';
   if (jamEl2) jamEl2.value = '';
+  document.getElementById('ikJamKeluar').value  = '';
+  document.getElementById('ikJamKembali').value = '';
+  // Pastikan tanggal selesai terlihat lagi
+  const tglSelesaiGroup = document.getElementById('izinTglSelesai').closest('.form-group');
+  if (tglSelesaiGroup) tglSelesaiGroup.style.display = 'block';
   izinFotoBase64 = null;
   show('step5');
   setDot(5);
 }
 
 function onIzinTipeChange() {
-  const tipe    = document.getElementById('izinTipe').value;
-  const jamSec  = document.getElementById('izinJamSection');
-  const isDinas = tipe === 'Dinas Luar';
+  const tipe      = document.getElementById('izinTipe').value;
+  const jamSec    = document.getElementById('izinJamSection');
+  const ikSec     = document.getElementById('izinKeluarSection');
+  const tglGrid   = document.querySelector('#step5 .form-group + div[style*="grid-template-columns"]');
+  const isDinas   = tipe === 'Dinas Luar';
+  const isIK      = tipe === 'Izin Keluar Sementara';
+
   jamSec.style.display = isDinas ? 'block' : 'none';
+  ikSec.style.display  = isIK   ? 'block' : 'none';
+
+  // Izin Keluar Sementara hanya 1 hari, sembunyikan tanggal selesai
+  const tglSelesaiGroup = document.getElementById('izinTglSelesai').closest('.form-group');
+  if (tglSelesaiGroup) {
+    tglSelesaiGroup.style.display = isIK ? 'none' : 'block';
+    if (isIK) document.getElementById('izinTglSelesai').value = '';
+  }
+
   if (!isDinas) {
     document.getElementById('izinJamMulai').value  = '';
     document.getElementById('izinJamSelesai').value = '';
+  }
+  if (!isIK) {
+    document.getElementById('ikJamKeluar').value  = '';
+    document.getElementById('ikJamKembali').value = '';
+    document.getElementById('ikDurasiInfo').style.display = 'none';
   }
   updateIzinHari();
 }
@@ -1756,10 +1806,30 @@ function updateIzinHari() {
   const info     = document.getElementById('izinHariInfo');
   const text     = document.getElementById('izinHariText');
 
+  // Hitung & tampilkan durasi Izin Keluar Sementara
+  const ikKeluar  = document.getElementById('ikJamKeluar').value;
+  const ikKembali = document.getElementById('ikJamKembali').value;
+  const ikDurInfo = document.getElementById('ikDurasiInfo');
+  const ikDurText = document.getElementById('ikDurasiText');
+  if (tipe === 'Izin Keluar Sementara' && ikKeluar && ikKembali) {
+    const [h1, m1] = ikKeluar.split(':').map(Number);
+    const [h2, m2] = ikKembali.split(':').map(Number);
+    const dur = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (dur > 0) {
+      const jm = Math.floor(dur / 60), mn = dur % 60;
+      ikDurText.textContent = `Durasi: ${jm > 0 ? jm + ' jam ' : ''}${mn > 0 ? mn + ' menit' : ''} (${ikKeluar} – ${ikKembali})`;
+      ikDurInfo.style.display = 'block';
+    } else {
+      ikDurInfo.style.display = 'none';
+    }
+  } else {
+    ikDurInfo.style.display = 'none';
+  }
+
   if (!mulai) { info.style.display = 'none'; return; }
 
   const d1 = new Date(mulai);
-  const d2 = selesai ? new Date(selesai) : d1;
+  const d2 = (selesai && tipe !== 'Izin Keluar Sementara') ? new Date(selesai) : d1;
 
   if (d2 < d1) {
     document.getElementById('izinTglSelesai').value = mulai;
@@ -1772,8 +1842,9 @@ function updateIzinHari() {
   const selesaiStr = d2.toLocaleDateString('id-ID', opts);
 
   let infoText = '';
-  if (tipe === 'Dinas Luar' && jamMulai) {
-    // Tampilkan ringkasan jam untuk Dinas Luar
+  if (tipe === 'Izin Keluar Sementara') {
+    infoText = mulaiStr;
+  } else if (tipe === 'Dinas Luar' && jamMulai) {
     const tglPart = hari === 1
       ? mulaiStr
       : `${mulaiStr} s/d ${selesaiStr}`;
@@ -1826,44 +1897,120 @@ async function submitIzin() {
   const ket      = document.getElementById('izinKeterangan').value.trim();
   const jamMulai = document.getElementById('izinJamMulai').value;
   const jamSls   = document.getElementById('izinJamSelesai').value;
+  const ikKeluar  = document.getElementById('ikJamKeluar').value;
+  const ikKembali = document.getElementById('ikJamKembali').value;
+  const isIK      = tipe === 'Izin Keluar Sementara';
 
   if (!tipe)     { showAlert('Pilih tipe izin terlebih dahulu.', 'error'); return; }
-  if (!tglMulai) { showAlert('Tanggal mulai wajib diisi.', 'error'); return; }
+  if (!tglMulai) { showAlert('Tanggal wajib diisi.', 'error'); return; }
   if (!State.selectedEmp) { showAlert('Karyawan tidak ditemukan, kembali dan pilih ulang.', 'error'); return; }
   if (tipe === 'Dinas Luar' && jamMulai && jamSls && jamSls <= jamMulai) {
     showAlert('Jam selesai harus lebih dari jam mulai.', 'error'); return;
+  }
+  if (isIK) {
+    if (!ikKeluar)  { showAlert('Jam keluar wajib diisi.', 'error'); return; }
+    if (!ikKembali) { showAlert('Jam kembali wajib diisi.', 'error'); return; }
+    const [h1,m1] = ikKeluar.split(':').map(Number);
+    const [h2,m2] = ikKembali.split(':').map(Number);
+    if ((h2*60+m2) <= (h1*60+m1)) { showAlert('Jam kembali harus lebih dari jam keluar.', 'error'); return; }
   }
 
   const btn = document.getElementById('btnSubmitIzin');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
-  // Buat keterangan otomatis untuk Dinas Luar jika ada jam
-  let ketFinal = ket;
-  if (tipe === 'Dinas Luar' && jamMulai) {
-    const jamInfo = jamSls ? `Jam ${jamMulai} – ${jamSls}` : `Mulai jam ${jamMulai}`;
-    ketFinal = ket ? `${jamInfo}. ${ket}` : jamInfo;
-  }
-
   try {
-    const payload = {
-      employee_id:  State.selectedEmp.employee_id,
-      pin:          State.pin,
-      tipe,
-      tgl_mulai:    tglMulai,
-      tgl_selesai:  tglAkhir || tglMulai,
-      jam_mulai:    jamMulai || '',
-      jam_selesai:  jamSls   || '',
-      keterangan:   ketFinal,
-      foto_base64:  izinFotoBase64 || '',
-      submitted_by: 'karyawan'
-    };
+    let res;
 
-    const res = await callGASPost('submitLeaveRequest', payload);
+    if (isIK) {
+      // ── Izin Keluar Sementara → pakai action submitIzinKeluar ──
+      res = await callGAS('submitIzinKeluar', {
+        employee_id : State.selectedEmp.employee_id,
+        pin         : State.pin,
+        tanggal     : tglMulai,
+        jam_keluar  : ikKeluar,
+        jam_kembali : ikKembali,
+        keterangan  : ket,
+        submitted_by: 'karyawan'
+      });
+    } else {
+      // ── Izin/Cuti/Sakit/Dinas Luar biasa ──
+      let ketFinal = ket;
+      if (tipe === 'Dinas Luar' && jamMulai) {
+        const jamInfo = jamSls ? `Jam ${jamMulai} – ${jamSls}` : `Mulai jam ${jamMulai}`;
+        ketFinal = ket ? `${jamInfo}. ${ket}` : jamInfo;
+      }
+      const payload = {
+        employee_id:  State.selectedEmp.employee_id,
+        pin:          State.pin,
+        tipe,
+        tgl_mulai:    tglMulai,
+        tgl_selesai:  tglAkhir || tglMulai,
+        jam_mulai:    jamMulai || '',
+        jam_selesai:  jamSls   || '',
+        keterangan:   ketFinal,
+        foto_base64:  izinFotoBase64 || '',
+        submitted_by: 'karyawan'
+      };
+      res = await callGASPost('submitLeaveRequest', payload);
+    }
 
     if (res && res.success) {
       show('step5');
-      // Ringkasan jam untuk halaman sukses
+
+      // ── Tampilan sukses Izin Keluar Sementara ──
+      if (isIK) {
+        const [h1,m1] = ikKeluar.split(':').map(Number);
+        const [h2,m2] = ikKembali.split(':').map(Number);
+        const dur = (h2*60+m2)-(h1*60+m1);
+        const jm = Math.floor(dur/60), mn = dur%60;
+        const durStr = (jm > 0 ? jm+'j ' : '') + (mn > 0 ? mn+'m' : '');
+        document.getElementById('step5').innerHTML = `
+          <div style="text-align:center;padding:20px 0">
+            <div style="width:72px;height:72px;background:rgba(124,58,237,0.12);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:16px">🚶</div>
+            <h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:#7c3aed">Pengajuan Terkirim!</h3>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Izin Keluar Sementara atas nama</p>
+            <p style="font-size:15px;font-weight:700;margin-bottom:4px">${State.selectedEmp.nama}</p>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">sedang menunggu persetujuan admin.</p>
+            <div style="background:var(--surface);border:1px solid rgba(124,58,237,0.2);border-radius:12px;padding:14px;text-align:left;margin-bottom:20px">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+                <span style="color:var(--text-muted)">ID Pengajuan</span>
+                <span style="font-weight:600;font-size:11px">${res.izin_id || '—'}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+                <span style="color:var(--text-muted)">Tanggal</span>
+                <span style="font-weight:600">${tglMulai}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+                <span style="color:var(--text-muted)">Jam Keluar</span>
+                <span style="font-weight:600;color:#7c3aed">${ikKeluar} – ${ikKembali}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px">
+                <span style="color:var(--text-muted)">Durasi</span>
+                <span style="font-weight:600">${res.durasi_jam || durStr}</span>
+              </div>
+            </div>
+            ${res.message && res.message.includes('Peringatan') ? `
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--warning)">
+              <i class="fas fa-exclamation-triangle" style="margin-right:6px"></i>
+              ${res.message.split('(Peringatan:')[1]?.replace(')','').trim() || 'Saldo overtime mungkin tidak cukup.'}
+            </div>` : ''}
+            <div style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.15);border-radius:10px;padding:12px;margin-bottom:20px;font-size:12px;color:#7c3aed">
+              <i class="fas fa-info-circle" style="margin-right:6px"></i>
+              Saldo overtime akan dipotong otomatis saat admin menyetujui dan import fingerprint dilakukan.
+            </div>
+            <button class="btn-submit" onclick="resetForm()" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)">
+              <i class="fas fa-check"></i> Selesai
+            </button>
+            <div style="height:10px"></div>
+            <button class="btn-secondary" onclick="resetForm()">
+              <i class="fas fa-home" style="margin-right:6px"></i>Kembali ke Beranda
+            </button>
+          </div>`;
+        return;
+      }
+
+      // ── Tampilan sukses izin biasa ──
       const jamDisplay = (tipe === 'Dinas Luar' && jamMulai)
         ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
              <span style="color:var(--text-muted)">Jam</span>
@@ -2180,9 +2327,10 @@ async function loadPengajuanKaryawan() {
 
   try {
     const empId = State.selectedEmp.employee_id;
-    const [resKoreksi, resIzin] = await Promise.all([
+    const [resKoreksi, resIzin, resIK] = await Promise.all([
       callGAS('getAttendanceCorrections', { employee_id: empId }),
-      callGAS('getLeaveRequests',         { employee_id: empId })
+      callGAS('getLeaveRequests',         { employee_id: empId }),
+      callGAS('getIzinKeluar',            { employee_id: empId })
     ]);
 
     _allPengajuan = [];
@@ -2215,6 +2363,21 @@ async function loadPengajuanKaryawan() {
           status  : r.status,
           diajukan: r.tgl_pengajuan,
           alasan  : r.keterangan,
+          catatan : r.catatan_admin || ''
+        });
+      });
+    }
+
+    if (resIK && resIK.success) {
+      (resIK.data || []).forEach(r => {
+        _allPengajuan.push({
+          jenis   : 'izin_keluar',
+          id      : r.izin_id,
+          tipe    : 'Izin Keluar Sementara',
+          tanggal : r.tanggal,
+          status  : r.status,
+          diajukan: r.tgl_pengajuan,
+          alasan  : `${r.jam_keluar} – ${r.jam_kembali}${r.keterangan ? ' | ' + r.keterangan : ''}`,
           catatan : r.catatan_admin || ''
         });
       });
@@ -2255,8 +2418,9 @@ function renderPengajuan(list) {
     Izin       : '🙏 Izin',
     Cuti       : '🏖️ Cuti',
     Sakit      : '🤒 Sakit',
-    'Dinas Luar'         : '🚗 Dinas Luar',
-    'Keperluan Keluarga' : '👨‍👩‍👧 Keperluan Keluarga'
+    'Dinas Luar'           : '🚗 Dinas Luar',
+    'Keperluan Keluarga'   : '👨‍👩‍👧 Keperluan Keluarga',
+    'Izin Keluar Sementara': '🚶 Izin Keluar Sementara'
   };
 
   const statusBadge = {
